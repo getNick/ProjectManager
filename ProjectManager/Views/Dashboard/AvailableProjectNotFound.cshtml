@@ -1,0 +1,14 @@
+﻿
+@{
+    ViewData["Title"] = "AvailableProjectNotFound";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Unfortunately not found any projects available to you(</h2>
+<h3>You can wait while your company management send the invite to your email or create the new project by himself</h3>
+<div class="container" align="center">
+    <input type="button" class="btn btn-dark btn-lg" value="Refrash" onclick="location.href='@Url.Action("Index", "Dashboard")'" />
+    <input type="button" class="btn btn-dark btn-lg" value="Create new project" onclick="location.href='@Url.Action("Create", "Project")'" />
+</div>
+
+
