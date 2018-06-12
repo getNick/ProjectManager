@@ -33,6 +33,8 @@ namespace ProjectManager
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.AddDistributedMemoryCache();
+            services.AddSession();
             // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
 
@@ -56,6 +58,8 @@ namespace ProjectManager
             app.UseStaticFiles();
 
             app.UseAuthentication();
+
+            app.UseSession();
 
             app.UseMvc(routes =>
             {
