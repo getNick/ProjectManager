@@ -13,11 +13,12 @@ namespace ProjectManager.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        public ApplicationUser User { get; set; }
         public Project Project { get; set; }
         public Department Department { get; set; }
         public Team Team { get; set; }
-        public ApplicationUser Person { get; set; }
+        public double Salary { get; set; }
         public RoleEnum Role { get; set; }
-        public List<ProjectTask> AssignedTasks { get; set; }
+
     }
 }

@@ -1,0 +1,67 @@
+﻿@model ProjectManager.Models.DashboardViewModels.TaskPageViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@if (Model.CanCreateTask)
+{
+    <div class="row">
+        <input type="button" class="btn btn-dark btn-lg" value="Create new task" onclick="location.href = '@Url.Action("Create", "Task")'" />
+    </div>
+}
+<div class="row">
+    <div class="col-lg-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyOpenTask)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyOpenTask != null)
+                    {
+                        foreach (var task in Model.MyOpenTask)
+                        {
+                            <p>@task.Name</p>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyTeamTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyTeamTasks != null)
+                    {
+                        foreach (var task in Model.MyTeamTasks)
+                        {
+                            <p>@task.Name</p>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.AllMyClosedTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.AllMyClosedTasks != null)
+                    {
+                        foreach (var task in Model.AllMyClosedTasks)
+                        {
+                            <p>@task.Name</p>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-3"></div>
+    <div class="col-lg-3"></div>
+</div>
+

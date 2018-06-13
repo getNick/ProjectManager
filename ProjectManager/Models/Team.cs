@@ -9,8 +9,9 @@ namespace ProjectManager.Models
     public class Team:BaseModel
     {
         public Department Department { get; set; }
-        public Participant TeamLeader { get; set; }
+        //public Participant TeamLeader { get; set; }
         public List<Participant> Participants { get; set; }
         public List<ProjectTask> Tasks { get; set; }
+        public Sprint ActiveSprint { get; set; }
     }
 }

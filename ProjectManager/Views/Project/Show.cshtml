@@ -9,15 +9,15 @@
 <div class="col-lg-6">
     @{
         @(Html.DevExtreme().Popup()
-                                                                                                              .ID("createDepartment-popup")
-                                                                                                              .ElementAttr("class", "popup")
-                                                                                                              .Width(600)
-                                                                                                              .Height(300)
-                                                                                                              .ShowTitle(true)
-                                                                                                              .Title("New Department")
-                                                                                                              .Visible(false)
-                                                                                                              .DragEnabled(false)
-                                                                                                              .CloseOnOutsideClick(true))
+              .ID("createDepartment-popup")
+              .ElementAttr("class", "popup")
+              .Width(600)
+              .Height(350)
+              .ShowTitle(true)
+              .Title("New Department")
+              .Visible(false)
+              .DragEnabled(false)
+              .CloseOnOutsideClick(true))                                                                                                    
 
         <p>Departments</p>
         if (Model.Project.Departments != null)
@@ -64,7 +64,11 @@
                     </div>
                     <div class="form-group">
                         <label for="usr">Description:</label>
-                        <textarea class="form-control" rows="2" id="comment" name="description"></textarea>
+                        <textarea class="form-control" rows="2" id="usr" name="description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="usr">Head Of department email:</label>
+                        <input type="text" name="headOfDepartment" class="form-control" id="usr">
                     </div>
                     <div align="right">
                         <input type="submit" class="btn btn-dark btn-lg" value="Create" />
@@ -143,7 +147,8 @@
                         <tbody>
                         <tr>
                             <td class="col-sm-4">
-                                <input type="text" name="email[0]" class="form-control" />
+                                <label>Teamlead</label>
+                                <input type="text" name="teamLead" class="form-control"/>
                             </td>
                             <td class="col-sm-2">
                                 <a class="deleteRow"></a>
@@ -164,7 +169,7 @@
                     </div>
                     <script>
                         $(document).ready(function () {
-                            var counter = 1;
+                            var counter = 0;
 
                             $("#addrow").on("click", function () {
                                 var newRow = $("<tr>");
@@ -193,6 +198,8 @@
         }
     }
 </div>
-<div align="right">
-    <input type="button" class="btn btn-dark btn-lg" value="Save" onclick="location.href = '@Url.Action("Index", "Dashboard", new {selectedProjectId = Model.Project.Id})'" />
+<div class="row">
+    <div align="right">
+        <input type="button" class="btn btn-dark btn-lg" value="Save" onclick="location.href = '@Url.Action("Index", "Dashboard")'" />
+    </div>
 </div>

@@ -71,85 +71,113 @@ namespace ProjectManager.Controllers
             }
             var userId = _userManager.GetUserId(HttpContext.User);
             var user = _db.Users.FirstOrDefault(x => x.Id == userId);
-            var projLead = new Participant()
-            {
-                Person = user,
-                Role = RoleEnum.Manager,
-            };
+            
             var proj = new Project()
             {
-                ProjectLead=projLead,
+                //ProjectLead=participant,
                 Name = name,
                 Description = description,
                 ImageUrl = myFile.FileName,
                 Budget = double.Parse(budget),
                 Deadline = DateTime.Parse(deadline)
             };
+            var participant = new Participant()
+            {
+                Project = proj,
+                Role = RoleEnum.Manager,
+                User = user,
+            };
+            _db.Participants.Add(participant);
             _db.Projects.Add(proj);
             _db.SaveChanges();
-            HttpContext.Session.Set(SessionKeys.Project,proj);
-            return RedirectToAction("Show",new{ projectId=proj.Id});
+            HttpContext.Session.SetInt32(SessionKeys.ProjectId,proj.Id);
+            return RedirectToAction("Show");
         }
 
 
-        public IActionResult AddDepartment(int projectId, string name, string description)
+        public IActionResult AddDepartment(string name, string description, string headOfDepartment)
         {
-            var proj=_db.Projects.FirstOrDefault(x => x.Id == projectId);
+            var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
+            var proj = _db.Projects.Include(x => x.Departments).FirstOrDefault(x => x.Id == projId);
+
             if (proj.Departments == null)
             {
-                proj.Departments=new List<Department>();
+                proj.Departments = new List<Department>();
             }
-
+            var user = _db.Users.FirstOrDefault(x => x.Email == headOfDepartment) ?? CreateNewApplicationUser(headOfDepartment).Result;
+            
             var newDep = new Department()
             {
                 Name = name,
-                Description = description
+                Description = description,
+                //HeadOfDepartment = participant,
+                Project = proj,
             };
+            var participant = new Participant()
+            {
+                Project = proj,
+                Department = newDep,
+                Role = RoleEnum.Manager,
+                User = user,
+            };
+            _db.Participants.Add(participant);
             proj.Departments.Add(newDep);
             _db.Projects.Update(proj);
             _db.SaveChanges();
-            return RedirectToAction("Show", new { projectId = proj.Id, selectedDepartmentId=newDep.Id });
+            return RedirectToAction("Show", new { selectedDepartmentId = newDep.Id });
         }
 
-        public async Task<IActionResult> AddTeam(int? departmentId, string name, string description,string[]email,int? teamId)
+        private async Task<ApplicationUser> CreateNewApplicationUser(string email, string pass = "!QAZ2wsx")
         {
-            var dep = _db.Departments.Include(x => x.Project).Include(x=>x.Teams).ThenInclude(x=>x.Participants).FirstOrDefault(x => x.Id == departmentId);
+            var user = new ApplicationUser { UserName = email, Email = email };
+            var result = await _userManager.CreateAsync(user, pass);
+            return user;
+        }
+        public IActionResult AddTeam(int? departmentId, string name, string description, string teamLead, string[] email, int? teamId)
+        {
+            var dep = _db.Departments.Include(x => x.Project).Include(x => x.Teams).ThenInclude(x => x.Participants).FirstOrDefault(x => x.Id == departmentId);
             if (dep.Teams == null)
             {
                 dep.Teams = new List<Team>();
             }
-
+           
             var newTeam = new Team()
             {
                 Name = name,
                 Description = description,
                 Participants = new List<Participant>(),
-                
+            };
+            var participant = new Participant()
+            {
+                Project = dep.Project,
+                Department = dep,
+                Team = newTeam,
+                Role = RoleEnum.Manager,
+                User = _db.Users.FirstOrDefault(x => x.Email == teamLead) ?? CreateNewApplicationUser(teamLead).Result,
             };
             foreach (var e in email)
             {
-                var user= _db.Users.FirstOrDefault(x => x.Email == e);
-              
-                if (user == null)
+                var user = _db.Users.FirstOrDefault(x => x.Email == e) ?? CreateNewApplicationUser(e).Result;
+                var newParticipant = new Participant()
                 {
-                    user = new ApplicationUser { UserName =e, Email = e };
-                    var result = await _userManager.CreateAsync(user, "!QAZ2wsx");
-                }
-                newTeam.Participants.Add(new Participant()
-                {
-                    Person = user,
-                });
+                    Department = dep,
+                    Project = dep.Project,
+                    Role = RoleEnum.Developer,
+                    Team = newTeam,
+                    User = user,
+                };
+                newTeam.Participants.Add(newParticipant);
             }
             dep.Teams.Add(newTeam);
             _db.Departments.Update(dep);
             _db.SaveChanges();
-            return RedirectToAction("Show", new { projectId = dep.Project.Id, selectedDepartmentId =dep.Id, selectedTeamId=newTeam.Id });
+            return RedirectToAction("Show", new { selectedDepartmentId = dep.Id, selectedTeamId = newTeam.Id });
         }
 
-        public IActionResult Show(int? projectId,int? selectedDepartmentId,int? selectedTeamId)
+        public IActionResult Show(int? selectedDepartmentId,int? selectedTeamId)
         {
-            var proj2 = HttpContext.Session.Get<Project>(SessionKeys.Project);
-            var proj = _db.Projects.Include(x=>x.Departments).ThenInclude(x=>x.Teams).ThenInclude(x=>x.Participants).FirstOrDefault(x => x.Id == projectId);
+            var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
+            var proj = _db.Projects.Include(x=>x.Departments).ThenInclude(x=>x.Teams).ThenInclude(x=>x.Participants).FirstOrDefault(x => x.Id == projId);
             var vm = new EditProjectViewModel()
             {
                 Project = proj,

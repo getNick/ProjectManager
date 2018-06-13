@@ -25,33 +25,55 @@ namespace ProjectManager.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
         }
-        public IActionResult Index()
+        public IActionResult Index(int?selectedProjId)
         {
             if (!_signInManager.IsSignedIn(User))
             {
                 return RedirectToAction("Login", "Account");
             }
+            var part = _db.Participants.Include(x => x.Project).Include(x => x.Department).Include(x => x.Team).Include(x => x.User)
+                .ToList();
             var userId = _userManager.GetUserId(HttpContext.User);
-            var participants = _db.Participants.Include(x=>x.Person).Include(x=>x.Project).Where(x => x.Person.Id == userId).ToList();
-            if (participants.Count==0)
+            var user = _db.Users.FirstOrDefault(x => x.Id == userId);
+            //var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
+            Participant participant;
+            if (selectedProjId != null)
             {
-                return View("AvailableProjectNotFound");
+                user.LastSelectedProjectId = selectedProjId;
+                _db.Users.Update(user);
             }
+            if (user.LastSelectedProjectId == null)
+            {
+                var participants = _db.Participants.Include(x => x.User).Include(x => x.Project).Where(x => x.User.Id == userId).ToList();
+                if (participants.Count> 1)
+                {
+                    return View("SelectProject", participants);//todo create
+                }
 
-            PersonalDashboard dashboard=new PersonalDashboard();
-            //if (selectedProjectId !=null)
+                if (participants.Count == 0)
+                {
+                    return View("AvailableProjectNotFound");
+                }
+                participant = participants.FirstOrDefault();
+                user.LastSelectedProjectId = participant.Project.Id;
+                _db.Users.Update(user);
+            }
+            else
+            {
+                participant= _db.Participants.Include(x => x.User).Include(x => x.Project).FirstOrDefault(x => (x.User.Id == userId)&(x.Project.Id==user.LastSelectedProjectId));
+            }
+            PersonalDashboard vm=new PersonalDashboard();
+
+            vm.ActiveProject = participant.Project;
+            vm.AssignedForMe = _db.Tasks.Where(x => (x.Assignee.Id == participant.Id)&(x.Status!=TaskStatusEnum.Done)).ToList();
+            vm.ComplitedTasks= _db.Tasks.Where(x => (x.Assignee.Id == participant.Id) & (x.Status == TaskStatusEnum.Done) & (x.FinishedTime.AddDays(7)>DateTime.Now)).ToList();
+            _db.SaveChanges();
+            //dashboard.ComplitedTasks = _db.Tasks.Where(x => (x.Project.Id == dashboard.ActiveProject.Id) & (x.Assignee.Id == userId) & (x.Status == TaskStatusEnum.Done)).ToList();
+            //if (partisipantForSelectedProj == null)
             //{
-            //    var partisipantForSelectedProj = participants.FirstOrDefault(x => x.Project.Id == selectedProjectId);
-            //    if (partisipantForSelectedProj == null)
-            //    {
-            //        return View("AccessToProjectDenied");
-            //    }
-            //    dashboard.ActiveProject =partisipantForSelectedProj.Project ;
-            //    dashboard.AssignedForMe = _db.Tasks.Where(x => (x.Assignee.Id == partisipantForSelectedProj.Id)&(x.Status!=TaskStatusEnum.Done)).ToList();
-            //    dashboard.ComplitedTasks= _db.Tasks.Where(x => (x.Assignee.Id == partisipantForSelectedProj.Id) & (x.Status == TaskStatusEnum.Done)).ToList();
+            //    return View("AccessToProjectDenied");
             //}
-            
-            return View(dashboard);
+            return View(vm);
         }
     }
 }

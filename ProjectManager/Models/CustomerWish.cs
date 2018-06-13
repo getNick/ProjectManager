@@ -7,6 +7,7 @@ namespace ProjectManager.Models
 {
     public class CustomerWish:BaseModel
     {
+        public Participant Autor { get; set; }
         public Project Project { get; set; }
         public DateTime AddingTime { get; set; }
         public DateTime Deadline { get; set; }
