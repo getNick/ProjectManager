@@ -11,6 +11,7 @@ namespace ProjectManager.Models
         [Key]
         public int Id { get; set; }
         public ProjectTask Task { get; set; }
+        public Participant Participant { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
         public bool Finished { get; set; } = false;

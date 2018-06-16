@@ -6,149 +6,225 @@
 }
 
 <h2>Project partisipant</h2>
-<div class="col-lg-6">
-    @{
-        @(Html.DevExtreme().Popup()
-              .ID("createDepartment-popup")
-              .ElementAttr("class", "popup")
-              .Width(600)
-              .Height(350)
-              .ShowTitle(true)
-              .Title("New Department")
-              .Visible(false)
-              .DragEnabled(false)
-              .CloseOnOutsideClick(true))                                                                                                    
-
-        <p>Departments</p>
-        if (Model.Project.Departments != null)
-        {
-            <ul class="nav nav-pills nav-stacked">
-                @if (Model.SelectedDepartmentId == null)
+<div class="row">
+    <div class="panel panel-default col-lg-4">
+        <div class="panel-heading">
+            <h3>Departments</h3>
+        </div>
+        <div class="panel-body">
+            @{
+                @(Html.DevExtreme().Popup()
+                                                      .ID("createDepartment-popup")
+                                                      .ElementAttr("class", "popup")
+                                                      .Width(600)
+                                                      .Height(350)
+                                                      .ShowTitle(true)
+                                                      .Title("New Department")
+                                                      .Visible(false)
+                                                      .DragEnabled(false)
+                                                      .CloseOnOutsideClick(true))
+                if (Model.Project.Departments != null)
                 {
-                    if (Model.Project.Departments.Count > 0)
-                    {
-                        Model.SelectedDepartmentId = Model.Project.Departments.FirstOrDefault().Id;
-                    }
-                }
-                @foreach (var dep in Model.Project.Departments)
-                {
-                    if (dep.Id == Model.SelectedDepartmentId)
-                    {
-                        <li class="active"><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = dep.Id})">@dep.Name</a></li>
-                    }
-                    else
-                    {
-                        <li><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = dep.Id})">@dep.Name</a></li>
-                    }
-                }
-            </ul>
-        }
-        @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
-                              .Text("Create department")
-                              .OnClick(@<text>
-                            function showInfo(data) {
-                            var popup = $("#createDepartment-popup").dxPopup("instance");
-                            popup.option("contentTemplate", $("#createDepartment-template"));
-                            popup.show();
-                            }
-                            </text>)
-        )
-        using (Html.DevExtreme().NamedTemplate("createDepartment-template"))
-        {
-            <form asp-controller="Project" asp-action="AddDepartment">
-                <input type="text" value="@Model.Project.Id" name="projectId" hidden />
-                <div class="form-group">
-                    <div class="form-group">
-                        <label for="usr">Name:</label>
-                        <input type="text" name="name" class="form-control" id="usr">
-                    </div>
-                    <div class="form-group">
-                        <label for="usr">Description:</label>
-                        <textarea class="form-control" rows="2" id="usr" name="description"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="usr">Head Of department email:</label>
-                        <input type="text" name="headOfDepartment" class="form-control" id="usr">
-                    </div>
-                    <div align="right">
-                        <input type="submit" class="btn btn-dark btn-lg" value="Create" />
-                    </div>
-                </div>
-            </form>
-        }
-    }
-
-</div>
-<div class="col-lg-6">
-    @{
-        @(Html.DevExtreme().Popup()
-              .ID("createTeam-popup")
-              .ElementAttr("class", "popup")
-              .Width(600)
-              .ShowTitle(true)
-              .Title("New team")
-              .Visible(false)
-              .DragEnabled(false)
-              .CloseOnOutsideClick(true))
-
-        <p>Teams</p>
-        if (Model.SelectedDepartmentId != null)
-        {
-            <ul class="nav nav-pills nav-stacked">
-                @{
-                    List<Team> teams = null;
-                    var dep = Model.Project.Departments.FirstOrDefault(x => x.Id == (int) Model.SelectedDepartmentId);
-                    if (dep != null)
-                    {
-                        teams = dep.Teams;
-                    }
-                    if (teams != null)
-                    {
-
-                        foreach (var team in teams)
+                    <ul class="nav nav-pills nav-stacked">
+                        @if (Model.SelectedDepartmentId == null)
                         {
-                            if ((Model.SelectedTeamId == null) & (teams.IndexOf(team) == 0) || (team.Id == Model.SelectedTeamId))
+                            if (Model.Project.Departments.Count > 0)
                             {
-                                <li class="active"><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})">@team.Name</a></li>
+                                Model.SelectedDepartmentId = Model.Project.Departments.FirstOrDefault().Id;
+                            }
+                        }
+                        @foreach (var dep in Model.Project.Departments)
+                        {
+                            if (dep.Id == Model.SelectedDepartmentId)
+                            {
+                                <li class="active"><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = dep.Id})">@dep.Name</a></li>
                             }
                             else
                             {
-                                <li><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})">@team.Name</a></li>
+                                <li><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = dep.Id})">@dep.Name</a></li>
                             }
                         }
-                    }
+                    </ul>
                 }
-            </ul>
-        }
-        @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
-              .Text("Create team")
-              .OnClick(@<text>
-                           function showInfo(data) {
-                           var popup = $("#createTeam-popup").dxPopup("instance");
-                           popup.option("contentTemplate", $("#createTeam-template"));
-                           popup.show();
-                           }
-                        </text>)
-              )
-        using (Html.DevExtreme().NamedTemplate("createTeam-template"))
-        {
-            <form asp-controller="Project" asp-action="AddTeam">
-                <input type="text" value="@Model.SelectedDepartmentId" name="departmentId" hidden />
+                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                                                      .Text("Create department")
+                                                      .OnClick(@<text>
+                                                    function showInfo(data) {
+                                                    var popup = $("#createDepartment-popup").dxPopup("instance");
+                                                    popup.option("contentTemplate", $("#createDepartment-template"));
+                                                    popup.show();
+                                                    }
+                                                    </text>)
+                )
+                using (Html.DevExtreme().NamedTemplate("createDepartment-template"))
+                {
+                    <form asp-controller="Project" asp-action="AddDepartment">
+                        <input type="text" value="@Model.Project.Id" name="projectId" hidden />
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label for="usr">Name:</label>
+                                <input type="text" name="name" class="form-control" id="usr">
+                            </div>
+                            <div class="form-group">
+                                <label for="usr">Description:</label>
+                                <textarea class="form-control" rows="2" id="usr" name="description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="usr">Head Of department email:</label>
+                                <input type="text" name="headOfDepartment" class="form-control" id="usr">
+                            </div>
+                            <div align="right">
+                                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                                              .Text("Create").UseSubmitBehavior(true)
+                                )
+                            </div>
+                        </div>
+                    </form>
+                }
+            }
+
+        </div>
+    </div>
+    <div class="panel panel-default col-lg-4">
+        <div class="panel-heading">
+            <h3>Teams</h3>
+        </div>
+        <div class="panel-body">
+            @{
+                @(Html.DevExtreme().Popup()
+                                                                  .ID("createTeam-popup")
+                                                                  .ElementAttr("class", "popup")
+                                                                  .Width(600)
+                                                                  .ShowTitle(true)
+                                                                  .Title("New team")
+                                                                  .Visible(false)
+                                                                  .DragEnabled(false)
+                                                                  .CloseOnOutsideClick(true))
+                if (Model.SelectedDepartmentId != null)
+                {
+                    <ul class="nav nav-pills nav-stacked">
+                        @{
+                            List<Team> teams = null;
+                            var dep = Model.Project.Departments.FirstOrDefault(x => x.Id == (int)Model.SelectedDepartmentId);
+                            if (dep != null)
+                            {
+                                teams = dep.Teams;
+                            }
+                            if (teams != null)
+                            {
+
+                                foreach (var team in teams)
+                                {
+                                    if ((Model.SelectedTeamId == null) & (teams.IndexOf(team) == 0) || (team.Id == Model.SelectedTeamId))
+                                    {
+                                        <li class="active"><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})">@team.Name</a></li>
+                                    }
+                                    else
+                                    {
+                                        <li><a href="@Url.Action("Show", "Project", new {projectId = Model.Project.Id, selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})">@team.Name</a></li>
+                                    }
+                                }
+                            }
+                        }
+                    </ul>
+                }
+                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                                                                  .Text("Create team")
+                                                                  .OnClick(@<text>
+                                                                function showInfo(data) {
+                                                                var popup = $("#createTeam-popup").dxPopup("instance");
+                                                                popup.option("contentTemplate", $("#createTeam-template"));
+                                                                popup.show();
+                                                                }
+                                                                </text>)
+                )
+                using (Html.DevExtreme().NamedTemplate("createTeam-template"))
+                {
+                    <form asp-controller="Project" asp-action="AddTeam">
+                        <input type="text" value="@Model.SelectedDepartmentId" name="departmentId" hidden />
+                        <div class="form-group">
+                            <label for="usr">Name:</label>
+                            <input type="text" name="name" class="form-control" id="usr" />
+                        </div>
+                        <div class="form-group">
+                            <label for="usr">Description:</label>
+                            <textarea class="form-control" rows="2" id="comment" name="description" />
+                        </div>
+                        <div class="form-group">
+                            <table id="teamTable" class=" table order-list">
+                                <tbody>
+                                <tr>
+                                    <td class="col-sm-4">
+                                        <label>Teamlead</label>
+                                        <input type="text" name="teamLead" class="form-control" />
+                                    </td>
+                                    <td class="col-sm-2">
+                                        <a class="deleteRow"></a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <td colspan="5" style="text-align: left;">
+                                        <input type="button" class="btn btn-lg btn-block " id="addTeammate" value="Add Row" />
+                                    </td>
+                                </tr>
+                                <tr></tr>
+                                </tfoot>
+                            </table>
+                            <div align="right">
+                                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                                      .Text("Create").UseSubmitBehavior(true)
+                                      )
+                            </div>
+                        </div>
+                    </form>
+                    <script>
+                        $(document).ready(function () {
+                            var counter = 0;
+
+                            $("#addTeammate").on("click", function () {
+                                var newRow = $("<tr>");
+                                var cols = "";
+
+                                cols += '<td><input type="text" class="form-control" name="email[' + counter + ']"/></td>';
+
+                                cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
+                                newRow.append(cols);
+                                $("#teamTable").append(newRow);
+                                counter++;
+                            });
+
+
+
+                            $("#teamTable").on("click", ".ibtnDel", function (event) {
+                                $(this).closest("tr").remove();       
+                                counter -= 1
+                            });
+
+
+                        });
+
+                    </script>
+
+
+                }
+            }
+        </div>
+    </div>
+
+    <div class="panel panel-default col-lg-4">
+        <div class="panel-heading">
+            <h3>Customers</h3>
+        </div>
+        <div class="panel-body">
+            <form asp-controller="Project" asp-action="AddCustomers" id="customersForm">
                 <div class="form-group">
-                    <label for="usr">Name:</label>
-                    <input type="text" name="name" class="form-control" id="usr" />
-                </div>
-                <div class="form-group">
-                    <label for="usr">Description:</label>
-                    <textarea class="form-control" rows="2" id="comment" name="description" />
-                </div>
-                <div class="form-group">
-                    <table id="myTable" class=" table order-list">
+                    <table id="customerTable" class=" table order-list">
                         <tbody>
                         <tr>
                             <td class="col-sm-4">
-                                <label>Teamlead</label>
-                                <input type="text" name="teamLead" class="form-control"/>
+                                <input type="text" class="form-control" name="customerEmail[0]" />
                             </td>
                             <td class="col-sm-2">
                                 <a class="deleteRow"></a>
@@ -158,48 +234,47 @@
                         <tfoot>
                         <tr>
                             <td colspan="5" style="text-align: left;">
-                                <input type="button" class="btn btn-lg btn-block " id="addrow" value="Add Row" />
+                                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                                      .Text("Add Row").ID("addCustomer")
+                                      )
                             </td>
                         </tr>
-                        <tr></tr>
                         </tfoot>
                     </table>
-                    <div align="right">
-                        <input type="submit" class="btn btn-dark btn-lg" value="Create" />
-                    </div>
-                    <script>
-                        $(document).ready(function () {
-                            var counter = 0;
-
-                            $("#addrow").on("click", function () {
-                                var newRow = $("<tr>");
-                                var cols = "";
-
-                                cols += '<td><input type="text" class="form-control" name="email[' + counter + ']"/></td>';
-                                cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
-                                newRow.append(cols);
-                                $("table.order-list").append(newRow);
-                                counter++;
-                            });
-
-
-
-                            $("table.order-list").on("click", ".ibtnDel", function (event) {
-                                $(this).closest("tr").remove();
-                                counter -= 1
-                            });
-
-
-                        });
-                    </script>
-
                 </div>
             </form>
-        }
-    }
+            <script>
+                $(document).ready(function () {
+                    var counter1 = 1;
+
+                    $("#addCustomer").on("click", function () {
+                        var newRow = $("<tr>");
+                        var cols = "";
+
+                        cols += '<td><input type="text" class="form-control" name="customerEmail[' + counter1 + ']"/></td>';
+
+                        cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
+                        newRow.append(cols);
+                        $("#customerTable").append(newRow);
+                        counter1++;
+                    });
+
+
+
+                    $("#customerTable").on("click", ".ibtnDel", function (event) {
+                        $(this).closest("tr").remove();       
+                        counter1 -= 1
+                    });
+
+
+                });
+
+            </script>
+        </div>
+    </div>
 </div>
 <div class="row">
     <div align="right">
-        <input type="button" class="btn btn-dark btn-lg" value="Save" onclick="location.href = '@Url.Action("Index", "Dashboard")'" />
+        <input type="submit" class="btn btn-dark btn-lg" form="customersForm" value="Save"/>
     </div>
 </div>

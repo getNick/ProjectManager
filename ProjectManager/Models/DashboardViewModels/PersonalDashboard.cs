@@ -9,9 +9,10 @@ namespace ProjectManager.Models.DashboardViewModels
     public class PersonalDashboard
     {
         public Project ActiveProject { get; set; }
-        [Display(Name = "Assigned for Me")]
-        public List<ProjectTask> AssignedForMe { get; set; }
-        [Display(Name = "Completed of this week")]
-        public List<ProjectTask> ComplitedTasks { get; set; }
+        public List<ProjectTask> Backlog { get; set; }
+        public List<ProjectTask> ToDo { get; set; }
+        public List<ProjectTask> InProgress { get; set; }
+        public List<ProjectTask> Testing { get; set; }
+        public List<ProjectTask> Done { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace ProjectManager.Models
 {
     public class ProjectActivity:BaseModel
     {
-        public ApplicationUser Initializer { get; set; }
+        public Participant Initializer { get; set; }
         public DateTime Time { get; set; }
     }
 }

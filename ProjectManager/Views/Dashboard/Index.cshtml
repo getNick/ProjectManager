@@ -1,48 +1,90 @@
-﻿@model ProjectManager.Models.DashboardViewModels.PersonalDashboard
+﻿@using ProjectManager.Models.ConstAndEnums
+@model ProjectManager.Models.DashboardViewModels.PersonalDashboard
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 <div class="row">
-    <div class="col-lg-3">
+    <div class="col-lg-2 col-lg-offset-1" style="padding-left: 3px; padding-right: 3px;">
         <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.AssignedForMe)</div>
+            <div class="panel-heading">@TaskStatusEnum.Backlog.GetDisplayName()</div>
             <div class="panel-body">
                 @{
-                    if (Model.AssignedForMe != null)
+                    if (Model.Backlog != null)
                     {
-                        foreach (var task in Model.AssignedForMe)
+                        foreach (var task in Model.Backlog)
                         {
-                            <p>@task.Name</p>
+                            @await Html.PartialAsync("_TaskTemplateWithoutUser", task)
                         }
                     }
                 }
             </div>
         </div>
     </div>
-    <div class="col-lg-3">
+    <div class="col-lg-2" style="padding-left: 3px; padding-right: 3px;">
         <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.ComplitedTasks)</div>
+            <div class="panel-heading">@TaskStatusEnum.ToDo.GetDisplayName()</div>
             <div class="panel-body">
                 @{
-                    if (Model.ComplitedTasks != null)
+                    if (Model.ToDo != null)
                     {
-                        foreach (var task in Model.ComplitedTasks)
+                        foreach (var task in Model.ToDo)
                         {
-                            <p>@task.Name</p>
+                            @await Html.PartialAsync("_TaskTemplateWithoutUser", task)
                         }
                     }
                 }
             </div>
         </div>
     </div>
-    <div class="col-lg-3"></div>
-</div>
-<div class="row">
-    <div class="col-lg-3"></div>
-    <div class="col-lg-3"></div>
-    <div class="col-lg-3"></div>
-</div>
+    <div class="col-lg-2" style="padding-left: 3px; padding-right: 3px;">
+        <div class="panel panel-default">
+            <div class="panel-heading">@TaskStatusEnum.InProgress.GetDisplayName()</div>
+            <div class="panel-body">
+                @{
+                    if (Model.InProgress != null)
+                    {
+                        foreach (var task in Model.InProgress)
+                        {
+                            @await Html.PartialAsync("_TaskTemplateWithoutUser", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2" style="padding-left: 3px; padding-right: 3px;">
+        <div class="panel panel-default">
+            <div class="panel-heading">@TaskStatusEnum.Testing.GetDisplayName()</div>
+            <div class="panel-body">
+                @{
+                    if (Model.Testing != null)
+                    {
+                        foreach (var task in Model.Testing)
+                        {
+                            @await Html.PartialAsync("_TaskTemplateWithoutUser", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2" style="padding-left: 3px; padding-right: 3px;">
+        <div class="panel panel-default">
+            <div class="panel-heading">@TaskStatusEnum.Done.GetDisplayName()</div>
+            <div class="panel-body">
+                @{
+                    if (Model.Done != null)
+                    {
+                        foreach (var task in Model.Done)
+                        {
+                            @await Html.PartialAsync("_TaskTemplateWithoutUser", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
 
+</div>
 

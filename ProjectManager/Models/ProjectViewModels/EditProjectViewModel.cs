@@ -10,5 +10,6 @@ namespace ProjectManager.Models.ProjectViewModels
         public Project Project { get; set; }
         public int? SelectedDepartmentId { get; set; }
         public int? SelectedTeamId { get; set; }
+        public List<Participant> Customers { get; set; }
     }
 }

@@ -26,5 +26,7 @@ namespace ProjectManager.Models
         public int ComplitedLine { get; set; }
         public ProjectTask BaseTask { get; set; }
         public List<ProjectTask> Subtasks { get; set; }
+        public Comments Comments { get; set; }
+        public ProjectActivities Activities { get; set; }
     }
 }

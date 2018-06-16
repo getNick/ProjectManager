@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ProjectManager.Data;
 using ProjectManager.Models;
 using ProjectManager.Models.AccountViewModels;
 using ProjectManager.Services;
@@ -24,17 +25,18 @@ namespace ProjectManager.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
-
+        private readonly ApplicationDbContext _db;
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,ApplicationDbContext db)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _logger = logger;
+            _db = db;
         }
 
         [TempData]
@@ -51,6 +53,19 @@ namespace ProjectManager.Controllers
             return View();
         }
 
+        public IActionResult ChangeName(string name)
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var user = _db.Users.FirstOrDefault(x => x.Id == userId);
+            if (name != null)
+            {
+                user.FullName = name;
+            }
+
+            _db.Users.Update(user);
+            _db.SaveChanges();
+            return RedirectToAction("Index", "Dashboard");
+        }
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -65,6 +80,11 @@ namespace ProjectManager.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
+                    var user = _db.Users.FirstOrDefault(x => x.Email == model.Email);
+                    if (user.FullName==user.Email)
+                    {
+                        return View("ChangeName", user);
+                    }
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
@@ -220,7 +240,7 @@ namespace ProjectManager.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email,FullName =model.FullName, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {

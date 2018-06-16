@@ -1,110 +1,124 @@
-﻿@model ProjectManager.Models.DashboardViewModels.CreateNewTaskViewModel
+﻿@using ProjectManager.Models.ConstAndEnums
+@model ProjectManager.Models.DashboardViewModels.CreateNewTaskViewModel
 @{
     ViewData["Title"] = "Create";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<form asp-controller="Task" asp-action="SaveNewTask" method="post" enctype="multipart/form-data">
+    <h2>New task</h2>
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Department:</label>
+                @if (Model.AllDepartments != null)
+                {
+                    <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var dep in Model.AllDepartments)
+                        {
+                            if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
+                            {
+                                <option value="@dep.Id" selected>@dep.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Create", "Task", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Team:</label>
+                @if (Model.AllTeams != null)
+                {
+                    <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var team in Model.AllTeams)
+                        {
+                            if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
+                            {
+                                <option value="@team.Id" selected>@team.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Create", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
 
-<h2>New task</h2>
-<div class="row">
-    <div class="col-lg-4">
-        <div class="form-group">
-            <label>Department:</label>
-            @if (Model.AllDepartments != null)
-            {
-                <select class="form-control" id="sel1" name="forma" onchange="if (this.value) window.location.href = this.value">
-                    @foreach (var dep in Model.AllDepartments)
-                    {
-                        if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
+        </div>
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Assigne:</label>
+                @if (Model.SelectedTeam != null)
+                {
+                    <select name="assigneId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var participant in Model.SelectedTeam.Participants)
                         {
-                            <option selected>@dep.Name</option>
+                            <option value="@participant.Id">@participant.User.UserName</option>
                         }
-                        else
-                        {
-                            <option value="@Url.Action("Create", "Task", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
-                        }
-                    }
+                    </select>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 ">
+            <div class="form-group">
+                <label for="usr">Description:</label>
+                <textarea class="form-control" rows="5" name="description"></textarea>
+            </div>
+            <label for="file-uploader">Additional files:</label>
+            @(Html.DevExtreme().FileUploader()
+                  .ID("file-uploader")
+                  .Name("files")
+                  .Multiple(true)
+                  .Accept("*")
+                  .UploadMode(FileUploadMode.UseForm)
+                  .OnValueChanged("fileUploader_valueChanged")
+                  )
+        </div>
+        <div class="form-group col-lg-6">
+            <label for="usr">Name:</label>
+            <input type="text" name="name" class="form-control" id="usr">
+            <div class="form-group">
+                <label>Priority:</label>
+                <select name="priority" class="form-control">
+                    <option value="@PriorityEnum.Lowest">@PriorityEnum.Lowest</option>
+                    <option value="@PriorityEnum.Low">@PriorityEnum.Low</option>
+                    <option value="@PriorityEnum.Medium">@PriorityEnum.Medium</option>
+                    <option value="@PriorityEnum.High">@PriorityEnum.High</option>
+                    <option value="@PriorityEnum.Highest">@PriorityEnum.Highest</option>
                 </select>
-            }
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="form-group">
-            <label>Team:</label>
-            @if (Model.AllTeams != null)
-            {
-                <select name="forma" class="form-control" onchange="if (this.value) window.location.href = this.value">
-                    @foreach (var team in Model.AllTeams)
-                    {
-                        if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
-                        {
-                            <option selected>@team.Name</option>
-                        }
-                        else
-                        {
-                            <option value="@Url.Action("Create", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
-                        }
-                    }
+            </div>
+            <div class="form-group">
+                <label>Task type:</label>
+                <select name="taskType" class="form-control">
+                    <option value="@TaskTypeEnum.Task">@TaskTypeEnum.Task</option>
+                    <option value="@TaskTypeEnum.Bug">@TaskTypeEnum.Bug</option>
+                    <option value="@TaskTypeEnum.Investigation">@TaskTypeEnum.Investigation</option>
+                    <option value="@TaskTypeEnum.Testing">@TaskTypeEnum.Testing</option>
                 </select>
-            }
-        </div>
-
-    </div>
-    <div class="col-lg-4">
-        <div class="form-group">
-            <label>Assigne:</label>
-            @if (Model.SelectedTeam != null)
-            {
-                <select name="assigne"  class="form-control" onchange="if (this.value) window.location.href = this.value">
-                    @foreach (var participant in Model.SelectedTeam.Participants)
-                    {
-                        <option value="@Url.Action("Create", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = participant.Id})">@participant.User.UserName</option>
-                    }
-                </select>
-            }
+            </div>
+            <div class="form-group">
+                <label for="selected-date">Project deadline:</label>
+                @(Html.DevExtreme().DateBox().Name("deadline")
+                      .ID("selected-date")
+                      .Value(DateTime.Now)
+                      .Width("100%")
+                      .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
+            </div>
         </div>
     </div>
-</div>
-<div class="row">
-    <div class="form-group col-lg-6" align="center">
-        <label for="usr">Name:</label>
-        <input type="text" name="name" class="form-control" id="usr">
-        <div class="form-group">
-            <label for="usr">Description:</label>
-            <textarea class="form-control" rows="5" name="description"></textarea>
-        </div>
-        <label for="file-uploader">Additional files:</label>
-        @(Html.DevExtreme().FileUploader()
-              .ID("file-uploader")
-              .Name("files")
-              .Multiple(true)
-              .Accept("*")
-              .UploadMode(FileUploadMode.UseForm)
-              .OnValueChanged("fileUploader_valueChanged")
-              )
-    </div>
-    <div class="col-lg-6 ">
-        <div class="form-group">
-            <label for="selected-date">Project deadline:</label>
-            @(Html.DevExtreme().DateBox().Name("deadline")
-                  .ID("selected-date")
-                  .Value(DateTime.Now)
-                  .Width("100%")
-                  .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
-        </div>
-        <div class="form-group">
-            <label>Assigne:</label>
-            <select name="priority"  class="form-control" onchange="if (this.value) window.location.href = this.value">
-                <option value=""></option>
-            </select>
+    <div class="row">
+        <div align="right">
+            <input type="submit" class="btn btn-dark btn-lg" value="Create"/>
         </div>
     </div>
-</div>
-<div class="row">
-    <div align="right">
-        <input type="button" class="btn btn-dark btn-lg" value="Create" onclick="location.href = '@Url.Action("Index", "Task")'" />
-    </div>
-</div>
-
+</form>
 <script>
     var date = new Date().getTime();
 

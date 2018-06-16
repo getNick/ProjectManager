@@ -1,0 +1,20 @@
+﻿@using ProjectManager.Models.ConstAndEnums
+@model ProjectTask
+
+<a href="@Url.Action("Edit", "Task", new {taskId = Model.Id})" style="height: 50px; padding: 2px">
+    <div class="panel" style="background-color: red">
+        <table >
+            <tr>
+                <td style="vertical-align: middle; height: 40px; width: 25%">
+                    <img src="images/system/@Model.Type.GetDisplayDescription()" style="height: 100%;"/>
+                </td>
+                <td style="vertical-align: middle; height: 40px; width: 35%">
+                    <p>@Model.Name</p>
+                </td>
+                <td style="vertical-align: middle; height: 40px; width: 10%">
+                    <img src="images/system/@Model.Priority.GetDisplayDescription()" style="height: 50%"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+</a>

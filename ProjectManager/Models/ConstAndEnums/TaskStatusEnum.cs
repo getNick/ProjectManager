@@ -8,16 +8,14 @@ namespace ProjectManager.Models.ConstAndEnums
 {
     public enum TaskStatusEnum
     {
-        [Display(Name = "In progress")]
+        [Display(Name = "Backlog")]
+        Backlog,
+        [Display(Name = "To Do")]
+        ToDo,
+        [Display(Name = "In Progress")]
         InProgress,
-        [Display(Name = "Re-opened")]
-        ReOpened,
-        [Display(Name = "In risk!")]
-        InRisk,
-        [Display(Name = "Need review")]
-        NeedReview,
-        [Display(Name = "Pending")]
-        Pending,
+        [Display(Name = "Testing")]
+        Testing,
         [Display(Name = "Done")]
         Done,
 

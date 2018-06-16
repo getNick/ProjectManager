@@ -13,5 +13,6 @@ namespace ProjectManager.Models
         public List<Participant> Participants { get; set; }
         public List<ProjectTask> Tasks { get; set; }
         public Sprint ActiveSprint { get; set; }
+        public ProjectActivities Activities { get; set; }
     }
 }

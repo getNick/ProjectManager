@@ -1,0 +1,22 @@
+﻿@model ApplicationUser
+@{
+    ViewData["Title"] = "ChangeName";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+<form asp-controller="Account" asp-action="ChangeName">
+    <div class="panel panel-default col-lg-6 col-lg-offset-3" align="center">
+        <div class="panel-heading">
+            <p>Hi,your name have default value(email)</p>
+        </div>
+        <div class="panel-body">
+            <input type="text" class="form-control" value="@Model.UserName" name="name" />
+            <div align="right">
+                @(Html.DevExtreme().Button().ElementAttr("class", "button-info")
+                              .Text("Save").UseSubmitBehavior(true)
+                )
+            </div>
+        </div>
+    </div>
+</form>
+</div>

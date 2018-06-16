@@ -34,15 +34,26 @@ namespace ProjectManager.Controllers
             _signInManager = signInManager;
             _appEnvironment = appEnvironment;
         }
-        public IActionResult Index()
+        public IActionResult Index(int? selectedProjId)
         {
             if (!_signInManager.IsSignedIn(User))
             {
                 return RedirectToAction("Login", "Account");
             }
-            return View();
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var user = _db.Users.FirstOrDefault(x => x.Id == userId);
+            if (selectedProjId != null)
+            {
+                user.LastSelectedProjectId = selectedProjId;
+            }
+            var vm = new ShowProjectViewModel();
+            vm.AllProjects = _db.Participants.Include(x => x.User).Include(x => x.Project)
+                .Where(x => x.User.Id == userId).Select(x => x.Project).ToList();
+            vm.SelectedProject = vm.AllProjects?.FirstOrDefault(x => x.Id == user.LastSelectedProjectId);
+            _db.Users.Update(user);
+            _db.SaveChanges();
+            return View(vm);
         }
-
         public IActionResult Create()
         {
             return View();
@@ -79,7 +90,8 @@ namespace ProjectManager.Controllers
                 Description = description,
                 ImageUrl = myFile.FileName,
                 Budget = double.Parse(budget),
-                Deadline = DateTime.Parse(deadline)
+                Deadline = DateTime.Parse(deadline),
+                Activities = new ProjectActivities(){List =new List<ProjectActivity>()},
             };
             var participant = new Participant()
             {
@@ -87,19 +99,32 @@ namespace ProjectManager.Controllers
                 Role = RoleEnum.Manager,
                 User = user,
             };
+            proj.Activities.List.Add(new ProjectActivity()
+            {
+                Initializer = participant,
+                Time = DateTime.Now,
+                Description = 
+                              "< a href = 'https://www.tutorialspoint.com' > "+ user.FullName + " </ a > "+"<p> created this project.</p>"
+
+            });
+           
             _db.Participants.Add(participant);
             _db.Projects.Add(proj);
             _db.SaveChanges();
-            HttpContext.Session.SetInt32(SessionKeys.ProjectId,proj.Id);
+            user.LastSelectedProjectId = proj.Id;
+            _db.Users.Update(user);
+            _db.SaveChanges();
             return RedirectToAction("Show");
         }
 
 
         public IActionResult AddDepartment(string name, string description, string headOfDepartment)
         {
-            var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
-            var proj = _db.Projects.Include(x => x.Departments).FirstOrDefault(x => x.Id == projId);
 
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var applicationUser = _db.Users.FirstOrDefault(x => x.Id == userId);
+            var proj = _db.Projects.Include(x => x.Departments).Include(x=>x.Participants).ThenInclude(x=>x.User).FirstOrDefault(x => x.Id == applicationUser.LastSelectedProjectId);
+            
             if (proj.Departments == null)
             {
                 proj.Departments = new List<Department>();
@@ -112,7 +137,16 @@ namespace ProjectManager.Controllers
                 Description = description,
                 //HeadOfDepartment = participant,
                 Project = proj,
+                Activities = new ProjectActivities() { List = new List<ProjectActivity>() },
             };
+            newDep.Activities.List.Add(new ProjectActivity()
+            {
+                Initializer = proj.Participants.FirstOrDefault(x=>x.User.Id==applicationUser.Id),
+                Time = DateTime.Now,
+                Description =
+                    "< a href = 'https://www.tutorialspoint.com' > " + applicationUser.FullName + " </ a > " + "<p> created new department "+newDep.Name+".</p>"
+
+            });
             var participant = new Participant()
             {
                 Project = proj,
@@ -120,6 +154,14 @@ namespace ProjectManager.Controllers
                 Role = RoleEnum.Manager,
                 User = user,
             };
+            newDep.Activities.List.Add(new ProjectActivity()
+            {
+                Initializer = proj.Participants.FirstOrDefault(x => x.User.Id == applicationUser.Id),
+                Time = DateTime.Now,
+                Description =
+                    "< a href = 'https://www.tutorialspoint.com' > " + user.FullName + " </ a > " + "<p> new head of department " + newDep.Name + ".</p>"
+
+            });
             _db.Participants.Add(participant);
             proj.Departments.Add(newDep);
             _db.Projects.Update(proj);
@@ -129,12 +171,16 @@ namespace ProjectManager.Controllers
 
         private async Task<ApplicationUser> CreateNewApplicationUser(string email, string pass = "!QAZ2wsx")
         {
-            var user = new ApplicationUser { UserName = email, Email = email };
+            var user = new ApplicationUser { UserName = email,FullName = email,Email = email };
             var result = await _userManager.CreateAsync(user, pass);
             return user;
         }
         public IActionResult AddTeam(int? departmentId, string name, string description, string teamLead, string[] email, int? teamId)
         {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var applicationUser = _db.Users.FirstOrDefault(x => x.Id == userId);
+            var creator = _db.Participants.FirstOrDefault(x =>
+                (x.Project.Id == applicationUser.LastSelectedProjectId) & (x.User.Id == applicationUser.Id));
             var dep = _db.Departments.Include(x => x.Project).Include(x => x.Teams).ThenInclude(x => x.Participants).FirstOrDefault(x => x.Id == departmentId);
             if (dep.Teams == null)
             {
@@ -146,6 +192,7 @@ namespace ProjectManager.Controllers
                 Name = name,
                 Description = description,
                 Participants = new List<Participant>(),
+                Activities = new ProjectActivities() { List = new List<ProjectActivity>() },
             };
             var participant = new Participant()
             {
@@ -155,6 +202,15 @@ namespace ProjectManager.Controllers
                 Role = RoleEnum.Manager,
                 User = _db.Users.FirstOrDefault(x => x.Email == teamLead) ?? CreateNewApplicationUser(teamLead).Result,
             };
+            newTeam.Participants.Add(participant);
+            newTeam.Activities.List.Add(new ProjectActivity()
+            {
+                Initializer = creator,
+                Time = DateTime.Now,
+                Description =
+                    "< a href = 'https://www.tutorialspoint.com' > " + participant.User.FullName + " </ a > " + "<p> new teamlead of " + newTeam.Name + ".</p>"
+
+            });
             foreach (var e in email)
             {
                 var user = _db.Users.FirstOrDefault(x => x.Email == e) ?? CreateNewApplicationUser(e).Result;
@@ -167,28 +223,65 @@ namespace ProjectManager.Controllers
                     User = user,
                 };
                 newTeam.Participants.Add(newParticipant);
+                newTeam.Activities.List.Add(new ProjectActivity()
+                {
+                    Initializer = creator,
+                    Time = DateTime.Now,
+                    Description =
+                        "< a href = 'https://www.tutorialspoint.com' > " + creator.User.FullName + " </ a > " + "<p> invite to team " + user.FullName + ".</p>"
+
+                });
             }
+            
             dep.Teams.Add(newTeam);
             _db.Departments.Update(dep);
             _db.SaveChanges();
             return RedirectToAction("Show", new { selectedDepartmentId = dep.Id, selectedTeamId = newTeam.Id });
         }
 
+        public IActionResult AddCustomers(string[] customerEmail)
+        {
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var applicationUser = _db.Users.FirstOrDefault(x => x.Id == userId);
+            var creator = _db.Participants.FirstOrDefault(x =>
+                (x.Project.Id == applicationUser.LastSelectedProjectId) & (x.User.Id == applicationUser.Id));
+            var proj = _db.Projects.Include(x=>x.Activities).ThenInclude(x=>x.List).Include(x => x.Departments).ThenInclude(x => x.Teams).ThenInclude(x => x.Participants).FirstOrDefault(x => x.Id == applicationUser.LastSelectedProjectId);
+            foreach (var e in customerEmail)
+            {
+                var user = _db.Users.FirstOrDefault(x => x.Email == e) ?? CreateNewApplicationUser(e).Result;
+                var newParticipant = new Participant()
+                {
+                    Project = proj,
+                    Role = RoleEnum.Customer,
+                    User = user,
+                };
+                _db.Participants.Add(newParticipant);
+                proj.Activities.List.Add(new ProjectActivity()
+                {
+                    Initializer = creator,
+                    Time = DateTime.Now,
+                    Description =
+                        "< a href = 'https://www.tutorialspoint.com' > " + creator.User.FullName + " </ a > " + "<p> invite customer " + user.FullName + ".</p>"
+                });
+            }
+            _db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
         public IActionResult Show(int? selectedDepartmentId,int? selectedTeamId)
         {
-            var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
-            var proj = _db.Projects.Include(x=>x.Departments).ThenInclude(x=>x.Teams).ThenInclude(x=>x.Participants).FirstOrDefault(x => x.Id == projId);
+            var part = _db.Participants.Include(x => x.User).Include(x => x.Project).ToList();
+            var userId = _userManager.GetUserId(HttpContext.User);
+            var user = _db.Users.FirstOrDefault(x => x.Id == userId);
+            var proj = _db.Projects.Include(x=>x.Departments).ThenInclude(x=>x.Teams).ThenInclude(x=>x.Participants).FirstOrDefault(x => x.Id == user.LastSelectedProjectId);
             var vm = new EditProjectViewModel()
             {
                 Project = proj,
                 SelectedDepartmentId = selectedDepartmentId,
                 SelectedTeamId = selectedTeamId,
+               // Customers = proj.Participants?.Where(x=>x.Role==RoleEnum.Customer).ToList(),
             };
             return View("Show", vm);
-        }
-        public IActionResult Delete(int? projectId)
-        {
-            return View();
         }
     }
 }

@@ -1,0 +1,362 @@
+﻿@using ProjectManager.Models.ConstAndEnums
+@model ProjectTask
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <div clas="panel panel-defaul">
+            <table style="width: 100%">
+                <tr>
+                    <td style="vertical-align: middle; height: 40px; width: 25%">
+                        <img src="~/images/@Model.Type.GetDisplayDescription()" style="height: 100%;" />
+                    </td>
+                    <td style="vertical-align: middle; height: 40px; width: 35%">
+                        <p>@Model.Name</p>
+                    </td>
+                    <td style="vertical-align: middle; height: 40px; width: 10%">
+                        <img src="~/images/@Model.Priority.GetDisplayDescription()" style="height: 50%" />
+                    </td>
+                    <td style="vertical-align: middle; height: 40px; width: 30%">
+                        <p>@Model.Assignee.User.FullName</p>
+                    </td>
+                    @if (User.Identity.Name == @Model.Assignee.User.UserName)
+                    {
+                        bool haveActivePeriod = Model.WorkPeriods.FirstOrDefault(x => x.Finished == false) != null;
+
+                        if (haveActivePeriod)
+                        {
+                            <td style="vertical-align: middle; height: 40px; width: 30%">
+                                <input type="button" class="btn btn-default" value="Stop" onclick="location.href = '@Url.Action("Stop", "Task",new{taskId=Model.Id})'" />
+                            </td>
+                        }
+                        else
+                        {
+                            <td style="vertical-align: middle; height: 40px; width: 30%">
+                                <input type="button" class="btn btn-default" value="Start" onclick="location.href = '@Url.Action("Start", "Task",new{taskId=Model.Id})'" />
+                            </td>
+                        }
+                    }
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<form asp-controller="Task" asp-action="Save" method="post" enctype="multipart/form-data">
+    <input type="text" value="@Model.Id" name="taskId" hidden />
+    <div class="row">
+        <div class="form-group col-lg-6">
+            <div class="form-group">
+                <label for="usr">Description:</label>
+                <textarea class="form-control" rows="5" id="description" name="description">@Model.Description</textarea>
+            </div>
+            <label>Additional files:</label>
+            <ul class="list-group">
+                @foreach (var file in Model.AdditionalFiles.Files)
+                {
+                    <li class="list-group-item"><a href="~/images/@file.Path">@file.Path</a></li>
+                }
+            </ul>
+            <label>Load more files:</label>
+            @(Html.DevExtreme().FileUploader()
+                  .ID("file-uploader")
+                  .Name("files")
+                  .Multiple(true)
+                  .Accept("*")
+                  .UploadMode(FileUploadMode.UseForm)
+                  .OnValueChanged("fileUploader_valueChanged")
+                  )
+        </div>
+        <div class="form-group col-lg-6">
+            <div class="form-group">
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select name="status" class="form-control">
+                        @if (Model.Status == TaskStatusEnum.Backlog)
+                        {
+                            <option value="@TaskStatusEnum.Backlog" selected>@TaskStatusEnum.Backlog</option>
+                        }
+                        else
+                        {
+                            <option value="@TaskStatusEnum.Backlog">@TaskStatusEnum.Backlog</option>
+                        }
+                        @if (Model.Status == TaskStatusEnum.ToDo)
+                        {
+                            <option value="@TaskStatusEnum.ToDo" selected>@TaskStatusEnum.ToDo</option>
+                        }
+                        else
+                        {
+                            <option value="@TaskStatusEnum.ToDo">@TaskStatusEnum.ToDo</option>
+                        }
+                        @if (Model.Status == TaskStatusEnum.InProgress)
+                        {
+                            <option value="@TaskStatusEnum.InProgress" selected>@TaskStatusEnum.InProgress</option>
+                        }
+                        else
+                        {
+                            <option value="@TaskStatusEnum.InProgress">@TaskStatusEnum.InProgress</option>
+                        }
+                        @if (Model.Status == TaskStatusEnum.Done)
+                        {
+                            <option value="@TaskStatusEnum.Done" selected>@TaskStatusEnum.Done</option>
+                        }
+                        else
+                        {
+                            <option value="@TaskStatusEnum.Done">@TaskStatusEnum.Done</option>
+                        }
+
+                        @if (Model.Status == TaskStatusEnum.Testing)
+                        {
+                            <option value="@TaskStatusEnum.Testing" selected>@TaskStatusEnum.Testing</option>
+                        }
+                        else
+                        {
+                            <option value="@TaskStatusEnum.Testing">@TaskStatusEnum.Testing</option>
+                        }
+
+                    </select>
+                    @{
+                        int hours = 0;
+                        if (Model.WorkPeriods != null)
+                        {
+                            hours = Model.WorkPeriods.Sum(x => x.End.Subtract(x.Start).Hours);
+                        }
+                    }
+                    <div class="form-group">
+                        <label> Time estimates</label>
+                        <div class="input-group">
+                            <span class="input-group-addon">Min</span>
+                            <input type="text" class="form-control" name="minTime" value="@Model.MinEstimate.Hours">
+                            <span class="input-group-addon">Max</span>
+                            <input type="text" class="form-control" name="maxTime" value="@Model.MaxEstimate.Hours">
+                            <span class="input-group-addon">Spend now</span>
+                            <input type="text" class="form-control" value="@hours" readonly>
+                        </div>
+                    </div>
+                    @{ var dayToDeadline = Model.Deadline.Subtract(DateTime.Now).Days.ToString();}
+                    <div class="form-group">
+                        <label>Day to deadline @dayToDeadline</label>
+                    </div>
+                    <div class="form-group">
+                        <div class="dx-field custom-height-slider">
+                            <div class="dx-field-label">Progress</div>
+                            <div class="dx-field-value">
+                                @(Html.DevExtreme().Slider().Name("complitedLine")
+                                      .Min(0)
+                                      .Max(100)
+                                      .Value(@Model.ComplitedLine)
+                                      .Tooltip(t => t
+                                          .Enabled(true)
+                                          .Format(new JS("formatLabel"))
+                                          .Position(VerticalEdge.Bottom)
+                                          .ShowMode(SliderTooltipShowMode.Always)
+                                      )
+                                      )
+                                <script>
+                                    function formatLabel(value) {
+                                        return value + "%";
+                                    }
+
+                                    function slider_valueChanged(data) {
+                                        $("#slider-value").dxNumberBox("instance").option("value", data.value);
+                                    }
+
+                                    function numberBox_valueChanged(data) {
+                                        $("#handler-slider").dxSlider("instance").option("value", data.value);
+                                    }
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Comments
+                </div>
+                <div class="panel-body">
+                    @if (Model.Comments != null)
+                    {
+                        <ul class="list-group">
+                            @foreach (var comment in Model.Comments.List)
+                            {
+                                <li class="list-group-item">
+
+                                    <div class="form-group">
+                                        <h5>@comment.Autor.User.FullName @comment.Time</h5>
+                                        @Html.Raw(comment.Description)
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <h3> Create first comment</h3>
+                    }
+                    <textarea class="form-control" rows="2" id="comment" name="newComment"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div align="right">
+            <input type="submit" class="btn btn-default" value="Save"/>
+        </div>
+    </div>
+</form>
+<script>
+    var date = new Date().getTime();
+
+    function getCalendarInstance() {
+        return $("#calendar-container").dxCalendar("instance");
+    }
+
+    function isWeekend(date) {
+        var day = date.getDay();
+
+        return day === 0 || day === 6;
+    }
+
+    function getCellTemplate(data) {
+        var cssClass = "";
+
+        if (isWeekend(data.date))
+            cssClass = "weekend";
+
+        $.each([[1, 0], [4, 6], [25, 11]], function (_, item) {
+            if (data.date.getDate() === item[0] && data.date.getMonth() === item[1]) {
+                cssClass = "holyday";
+                return false;
+            }
+        });
+
+        return "<span class='" + cssClass + "'>" + data.text + "</span>";
+    }
+
+    function calendar_valueChanged(data) {
+        $("#selected-date").dxDateBox("instance").option("value", data.value);
+    }
+
+    function minValue_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("min", new Date(date - 1000 * 60 * 60 * 24 * 3));
+        }
+        else {
+            calendar.option("min", undefined);
+        }
+    }
+
+    function maxValue_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("max", new Date(date + 1000 * 60 * 60 * 24 * 3));
+        }
+        else {
+            calendar.option("max", undefined);
+        }
+    }
+
+    function disabledDates_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("disabledDates", function (data) {
+                return data.view === "month" && isWeekend(data.date);
+            });
+        }
+        else {
+            calendar.option("disabledDates", undefined);
+        }
+    }
+
+    function firstDayOfWeek_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("firstDayOfWeek", 1);
+        }
+        else {
+            calendar.option("firstDayOfWeek", 0);
+        }
+    }
+
+    function useCustomTemplate(data) {
+        getCalendarInstance().option("cellTemplate", data.value ? getCellTemplate : "cell");
+    }
+
+    function disabledState_changed(data) {
+        getCalendarInstance().option("disabled", data.value);
+    }
+
+    function zoomLevel_changed(data) {
+        getCalendarInstance().option("zoomLevel", data.value);
+    }
+
+    function selectedDate_changed(data) {
+        getCalendarInstance().option("value", data.value);
+    }
+    function getFileUploaderInstance() {
+        return $("#file-uploader").dxFileUploader("instance");
+    }
+
+    function fileUploader_valueChanged(e) {
+        var files = e.value;
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            $.each(files, function (i, file) {
+                var $selectedItem = $("<div />").addClass("selected-item");
+                $selectedItem.append(
+                    $("<span />").html("Name: " + file.name + "<br/>"),
+                );
+                $selectedItem.appendTo($("#selected-files"));
+            });
+            $("#selected-files").show();
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+    function acceptOption_changed(e) {
+        getFileUploaderInstance().option("accept", e.value);
+    }
+
+    function uploadMode_changed(e) {
+        getFileUploaderInstance().option("uploadMode", e.value);
+    }
+
+    function multipleOption_changed(e) {
+        getFileUploaderInstance().option("multiple", e.value);
+    }
+    tinymce.init({
+        selector: '#description',
+        height: 300,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor textcolor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: ' | undo redo |  formatselect | bold italic forecolor backcolor | link  | bullist numlist |  insert',
+        content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tinymce.com/css/codepen.min.css']
+    });
+    tinymce.init({
+        selector: '#comment',
+        height: 100,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor textcolor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: ' | undo redo |  formatselect | bold italic forecolor backcolor | link  | bullist numlist |  insert',
+        content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tinymce.com/css/codepen.min.css']
+    });
+</script>

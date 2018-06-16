@@ -15,5 +15,6 @@ namespace ProjectManager.Models
         public DateTime Deadline { get; set; }
         public List<Participant> Participants { get; set; }
         public List<ProjectTask> Tasks { get; set; }
+        public ProjectActivities Activities { get; set; }
     }
 }

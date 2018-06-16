@@ -10,23 +10,106 @@
     </div>
 }
 <div class="row">
-    <div class="col-lg-3">
-        <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyOpenTask)</div>
-            <div class="panel-body">
-                @{
-                    if (Model.MyOpenTask != null)
-                    {
+    @if (Model.MyOpenTask != null)
+    {
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">@Html.DisplayNameFor(model => model.MyOpenTask)</div>
+                <div class="panel-body">
+                    @{
+
                         foreach (var task in Model.MyOpenTask)
                         {
-                            <p>@task.Name</p>
+                            @await Html.PartialAsync("_TaskTemplate", task)
                         }
                     }
+
+                </div>
+            </div>
+
+        </div>
+    }
+    @if (Model.AllMyClosedTasks != null)
+    {
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">@Html.DisplayNameFor(model => model.AllMyClosedTasks)</div>
+                <div class="panel-body">
+                    @{
+
+                        foreach (var task in Model.AllMyClosedTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.CanCreateTask)
+    {
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Department:</label>
+                @if (Model.AllDepartments != null)
+                {
+                    <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var dep in Model.AllDepartments)
+                        {
+                            if ((Model.SelectedDepartmentId != null) && (dep.Id == Model.SelectedDepartmentId))
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})" selected>@dep.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
+                            }
+                        }
+                    </select>
                 }
             </div>
         </div>
-    </div>
-    <div class="col-lg-3">
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Team:</label>
+                @if (Model.AllTeams != null)
+                {
+                    <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var team in Model.AllTeams)
+                        {
+                            if ((Model.SelectedTeamId != null) && (team.Id == Model.SelectedTeamId))
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})" selected>@team.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartmentId, selectedTeamId = team.Id})">@team.Name</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @{
+                        if (Model.CustomList != null)
+                        {
+                            foreach (var task in Model.CustomList)
+                            {
+                                @await Html.PartialAsync("_TaskTemplate", task)
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="row">
+    <div class="col-lg-4">
         <div class="panel panel-default">
             <div class="panel-heading">@Html.DisplayNameFor(model => model.MyTeamTasks)</div>
             <div class="panel-body">
@@ -35,33 +118,44 @@
                     {
                         foreach (var task in Model.MyTeamTasks)
                         {
-                            <p>@task.Name</p>
+                            @await Html.PartialAsync("_TaskTemplate", task)
                         }
                     }
                 }
             </div>
         </div>
     </div>
-    <div class="col-lg-3">
+    <div class="col-lg-4">
         <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.AllMyClosedTasks)</div>
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyDepartmentTasks)</div>
             <div class="panel-body">
                 @{
-                    if (Model.AllMyClosedTasks != null)
+                    if (Model.MyDepartmentTasks != null)
                     {
-                        foreach (var task in Model.AllMyClosedTasks)
+                        foreach (var task in Model.MyDepartmentTasks)
                         {
-                            <p>@task.Name</p>
+                            @await Html.PartialAsync("_TaskTemplate", task)
                         }
                     }
                 }
             </div>
         </div>
     </div>
-</div>
-<div class="row">
-    <div class="col-lg-3"></div>
-    <div class="col-lg-3"></div>
-    <div class="col-lg-3"></div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyProjectTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyProjectTasks != null)
+                    {
+                        foreach (var task in Model.MyProjectTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
 </div>
 

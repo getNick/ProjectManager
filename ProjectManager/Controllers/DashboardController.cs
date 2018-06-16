@@ -44,7 +44,7 @@ namespace ProjectManager.Controllers
             }
             if (user.LastSelectedProjectId == null)
             {
-                var participants = _db.Participants.Include(x => x.User).Include(x => x.Project).Where(x => x.User.Id == userId).ToList();
+                var participants = _db.Participants.Include(x => x.User).Include(x => x.Project).ThenInclude(x=>x.Tasks).Where(x => x.User.Id == userId).ToList();
                 if (participants.Count> 1)
                 {
                     return View("SelectProject", participants);//todo create
@@ -64,10 +64,17 @@ namespace ProjectManager.Controllers
             }
             PersonalDashboard vm=new PersonalDashboard();
 
+            var allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project)
+                .Where(x => (x.Project.Id == user.LastSelectedProjectId)).ToList();
             vm.ActiveProject = participant.Project;
-            vm.AssignedForMe = _db.Tasks.Where(x => (x.Assignee.Id == participant.Id)&(x.Status!=TaskStatusEnum.Done)).ToList();
-            vm.ComplitedTasks= _db.Tasks.Where(x => (x.Assignee.Id == participant.Id) & (x.Status == TaskStatusEnum.Done) & (x.FinishedTime.AddDays(7)>DateTime.Now)).ToList();
-            _db.SaveChanges();
+            vm.Backlog =  allTasks.Where(x => x.Status == TaskStatusEnum.Backlog).ToList();
+            vm.ToDo = allTasks.Where(x => x.Status == TaskStatusEnum.ToDo).ToList();
+            vm.InProgress = allTasks.Where(x => x.Status == TaskStatusEnum.InProgress).ToList();
+            vm.Testing = allTasks.Where(x => x.Status == TaskStatusEnum.Testing).ToList();
+            vm.Done = allTasks.Where(x => x.Status == TaskStatusEnum.Done).ToList();
+            //vm.AssignedForMe = _db.Tasks.Where(x => (x.Assignee.Id == participant.Id)&(x.Status!=TaskStatusEnum.Done)).ToList();
+            //vm.ComplitedTasks= _db.Tasks.Where(x => (x.Assignee.Id == participant.Id) & (x.Status == TaskStatusEnum.Done) & (x.FinishedTime.AddDays(7)>DateTime.Now)).ToList();
+            //_db.SaveChanges();
             //dashboard.ComplitedTasks = _db.Tasks.Where(x => (x.Project.Id == dashboard.ActiveProject.Id) & (x.Assignee.Id == userId) & (x.Status == TaskStatusEnum.Done)).ToList();
             //if (partisipantForSelectedProj == null)
             //{

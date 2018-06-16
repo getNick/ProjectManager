@@ -19,6 +19,7 @@ namespace ProjectManager.Models
         public Team Team { get; set; }
         public double Salary { get; set; }
         public RoleEnum Role { get; set; }
+        public List<WorkPeriod> WorkPeriods { get; set; }
 
     }
 }
