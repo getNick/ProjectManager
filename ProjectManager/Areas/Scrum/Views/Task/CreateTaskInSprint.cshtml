@@ -1,65 +1,68 @@
-﻿@using ProjectManager.Models.ConstAndEnums
-
+﻿@using DevExtreme.AspNet.Mvc
+@using ProjectManager.Models.ConstAndEnums
+@model ProjectManager.Models.Sprint
 @{
-    ViewData["Title"] = "Create";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "CreateTaskInSprint";
+    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
 }
-
-<h2>New project</h2>
-<form asp-action="Save" asp-controller="Project" method="post" enctype="multipart/form-data">
+<form action="/Scrum/Task/SaveNewTaskToSprint" method="post" id="form" enctype="multipart/form-data">
+    <input type="text" name="sprintId" value="@Model.Id" hidden />
+    <h2>New task</h2>
     <div class="row">
+        <div class="col-lg-6 ">
+            <div class="form-group">
+                <label for="usr">Description:</label>
+                <textarea class="form-control" rows="5" name="description"></textarea>
+            </div>
+            <label for="file-uploader">Additional files:</label>
+            @(Html.DevExtreme().FileUploader()
+                  .ID("file-uploader")
+                  .Name("files")
+                  .Multiple(true)
+                  .Accept("*")
+                  .UploadMode(FileUploadMode.UseForm)
+                  .OnValueChanged("fileUploader_valueChanged")
+                  )
+        </div>
         <div class="form-group col-lg-6">
             <label for="usr">Name:</label>
             <input type="text" name="name" class="form-control" id="usr">
             <div class="form-group">
-                <label for="usr">Description:</label>
-                <textarea class="form-control" rows="5" id="comment" name="description"></textarea>
+                <label>Priority:</label>
+                <select name="priority" class="form-control">
+                    <option value="@PriorityEnum.Lowest">@PriorityEnum.Lowest</option>
+                    <option value="@PriorityEnum.Low">@PriorityEnum.Low</option>
+                    <option value="@PriorityEnum.Medium">@PriorityEnum.Medium</option>
+                    <option value="@PriorityEnum.High">@PriorityEnum.High</option>
+                    <option value="@PriorityEnum.Highest">@PriorityEnum.Highest</option>
+                </select>
             </div>
-        </div>
-        <div class="col-lg-6 ">
             <div class="form-group">
-                <label for="file-uploader">Upload avatar:</label>
-                @(Html.DevExtreme().FileUploader()
-                  .ID("file-uploader")
-                  .Name("files")
-                  .Multiple(false)
-                  .Accept("*")
-                  .UploadMode(FileUploadMode.UseForm)
-                  .OnValueChanged("fileUploader_valueChanged")
-                )
+                <label>Task type:</label>
+                <select name="taskType" class="form-control">
+                    <option value="@TaskTypeEnum.Task">@TaskTypeEnum.Task</option>
+                    <option value="@TaskTypeEnum.Bug">@TaskTypeEnum.Bug</option>
+                    <option value="@TaskTypeEnum.Investigation">@TaskTypeEnum.Investigation</option>
+                    <option value="@TaskTypeEnum.Testing">@TaskTypeEnum.Testing</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="selected-date">Deadline:</label>
+                @(Html.DevExtreme().DateBox().Name("deadline")
+                      .ID("selected-date")
+                      .Value(DateTime.Now)
+                      .Width("100%")
+                      .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="form-group col-lg-6">
-            <label for="usr">Budget:</label>
-            <div class="input-group" id="usr">
-                <span class="input-group-addon">$</span>
-                <input type="number" name="budget" class="form-control" min="0">
-            </div>
-            
-        </div>
-        <div class="form-group col-lg-6">
-            <label for="selected-date">Project deadline:</label>
-            @(Html.DevExtreme().DateBox().Name("deadline")
-                  .ID("selected-date")
-                  .Value(DateTime.Now)
-                  .Width("100%")
-                  .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
-            <select name="typeProj" class="form-control">
-                <option value="@ProjectTypeEnum.Scrum" selected>@ProjectTypeEnum.Scrum</option>
-                <option value="@ProjectTypeEnum.Kanban" selected>@ProjectTypeEnum.Kanban</option>
-                <option value="@ProjectTypeEnum.Kanban" selected>WaterFoll</option>
-            </select>
-        </div>
-
-    </div>
-    <div class="row">
-        <div align="right">
-            <input type="submit" class="btn btn-dark btn-lg" value="Save" />
-        </div>
-    </div>
+   
 </form>
+<div class="row">
+    <div align="right">
+        <input type="submit" class="btn btn-primary btn-lg" form="form" value="Create" />
+    </div>
+</div>
 <script>
     var date = new Date().getTime();
 
@@ -179,4 +182,18 @@
     function multipleOption_changed(e) {
         getFileUploaderInstance().option("multiple", e.value);
     }
+    tinymce.init({
+        selector: 'textarea',
+        height: 300,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor textcolor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: ' | undo redo |  formatselect | bold italic forecolor backcolor | link  | bullist numlist |  insert',
+        content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tinymce.com/css/codepen.min.css']
+    });
 </script>

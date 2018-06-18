@@ -11,8 +11,9 @@ using ProjectManager.Models;
 using ProjectManager.Models.ConstAndEnums;
 using ProjectManager.Models.DashboardViewModels;
 
-namespace ProjectManager.Controllers
+namespace ProjectManager.Scrum.Controllers
 {
+    [Area("Scrum")]
     public class DashboardController : Controller
     {
         private UserManager<ApplicationUser> _userManager;
@@ -63,27 +64,15 @@ namespace ProjectManager.Controllers
                 participant= _db.Participants.Include(x => x.User).Include(x => x.Project).FirstOrDefault(x => (x.User.Id == userId)&(x.Project.Id==user.LastSelectedProjectId));
             }
             PersonalDashboard vm=new PersonalDashboard();
-
+            var q = _db.Tasks.ToList();
             var allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project)
                 .Where(x => (x.Project.Id == user.LastSelectedProjectId)).ToList();
-            if (participant.Project.ProjectType == ProjectTypeEnum.Scrum)
-            {
-                return RedirectToAction("Index", "Dashboard", new {Area = "Scrum", participant.Project.Id});
-            }
             vm.ActiveProject = participant.Project;
             vm.Backlog =  allTasks.Where(x => x.Status == TaskStatusEnum.Backlog).ToList();
             vm.ToDo = allTasks.Where(x => x.Status == TaskStatusEnum.ToDo).ToList();
             vm.InProgress = allTasks.Where(x => x.Status == TaskStatusEnum.InProgress).ToList();
             vm.Testing = allTasks.Where(x => x.Status == TaskStatusEnum.Testing).ToList();
             vm.Done = allTasks.Where(x => x.Status == TaskStatusEnum.Done).ToList();
-            //vm.AssignedForMe = _db.Tasks.Where(x => (x.Assignee.Id == participant.Id)&(x.Status!=TaskStatusEnum.Done)).ToList();
-            //vm.ComplitedTasks= _db.Tasks.Where(x => (x.Assignee.Id == participant.Id) & (x.Status == TaskStatusEnum.Done) & (x.FinishedTime.AddDays(7)>DateTime.Now)).ToList();
-            //_db.SaveChanges();
-            //dashboard.ComplitedTasks = _db.Tasks.Where(x => (x.Project.Id == dashboard.ActiveProject.Id) & (x.Assignee.Id == userId) & (x.Status == TaskStatusEnum.Done)).ToList();
-            //if (partisipantForSelectedProj == null)
-            //{
-            //    return View("AccessToProjectDenied");
-            //}
             return View(vm);
         }
     }

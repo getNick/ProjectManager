@@ -1,0 +1,161 @@
+﻿@model ProjectManager.Models.DashboardViewModels.TaskPageViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
+}
+@if (Model.CanCreateTask)
+{
+    <div class="row">
+        <input type="button" class="btn btn-dark btn-lg" value="Create new task" onclick="location.href = '@Url.Action("Create", "Task")'" />
+    </div>
+}
+<div class="row">
+    @if (Model.MyOpenTask != null)
+    {
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">@Html.DisplayNameFor(model => model.MyOpenTask)</div>
+                <div class="panel-body">
+                    @{
+
+                        foreach (var task in Model.MyOpenTask)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    }
+    @if (Model.AllMyClosedTasks != null)
+    {
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">@Html.DisplayNameFor(model => model.AllMyClosedTasks)</div>
+                <div class="panel-body">
+                    @{
+
+                        foreach (var task in Model.AllMyClosedTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.CanCreateTask)
+    {
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Department:</label>
+                @if (Model.AllDepartments != null)
+                {
+                    <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var dep in Model.AllDepartments)
+                        {
+                            if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})" selected>@dep.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="form-group">
+                <label>Team:</label>
+                @if (Model.AllTeams != null)
+                {
+                    <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                        @foreach (var team in Model.AllTeams)
+                        {
+                            if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})" selected>@team.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
+                            }
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @{
+                        if (Model.CustomList != null)
+                        {
+                            foreach (var task in Model.CustomList)
+                            {
+                                @await Html.PartialAsync("_TaskTemplate", task)
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="row">
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyTeamTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyTeamTasks != null)
+                    {
+                        foreach (var task in Model.MyTeamTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyDepartmentTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyDepartmentTasks != null)
+                    {
+                        foreach (var task in Model.MyDepartmentTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyProjectTasks)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.MyProjectTasks != null)
+                    {
+                        foreach (var task in Model.MyProjectTasks)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

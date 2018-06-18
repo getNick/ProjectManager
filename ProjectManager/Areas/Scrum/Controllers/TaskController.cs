@@ -13,8 +13,9 @@ using ProjectManager.Models;
 using ProjectManager.Models.ConstAndEnums;
 using ProjectManager.Models.DashboardViewModels;
 
-namespace ProjectManager.Controllers
+namespace ProjectManager.Scrum.Controllers
 {
+    [Area("Scrum")]
     public class TaskController : Controller
     {
         private UserManager<ApplicationUser> _userManager;
@@ -50,7 +51,7 @@ namespace ProjectManager.Controllers
             vm.AllMyClosedTasks = vm.MyTeamTasks?
                 .Where(x => (x.Assignee.Id == participant.Id) & (x.Status == TaskStatusEnum.Done)).ToList();
             vm.CanCreateTask = participant.Role == RoleEnum.Manager;
-            vm.AllDepartments = _db.Departments.Include(x => x.Tasks).ThenInclude(x => x.Assignee).ThenInclude(x => x.User).Where(x => x.Project.Id == participant.Project.Id).ToList();
+            vm.AllDepartments = _db.Departments.Include(x => x.Teams).Include(x => x.Tasks).ThenInclude(x => x.Assignee).ThenInclude(x => x.User).Where(x => x.Project.Id == participant.Project.Id).ToList();
             //vm.AllDepartments = _db.Projects.Include(x => x.Departments).ThenInclude(x => x.Teams)
             //    .FirstOrDefault(x => x.Id == participant.Project.Id).Departments;
             if (selectedDepartmentId != null)
@@ -78,12 +79,15 @@ namespace ProjectManager.Controllers
 
             if (vm.CustomList == null)
             {
-                
+
                 vm.CustomList = _db.Tasks.Include(x => x.Project).Include(x => x.Assignee).ThenInclude(x => x.User)
                     .Where(x => x.Project.Id == user.LastSelectedProjectId).ToList();
             }
             return View(vm);
-        }
+            }
+            
+        
+        
 
         public IActionResult Create(int? selectedDepartmentId, int?selectedTeamId)
         {
@@ -105,6 +109,11 @@ namespace ProjectManager.Controllers
                               vm.AllTeams.FirstOrDefault();
             return View(vm);
         }
+        public IActionResult CreateTaskInSprint(int? sprintId)
+        {
+            var sprint = _db.Sprints.FirstOrDefault(x => x.Id == sprintId);
+            return View(sprint);
+        }
         public IActionResult Edit(int? taskId)
         {
             var task = _db.Tasks.Include("AdditionalFiles.Files").Include(x => x.WorkPeriods).Include("Activities.List")
@@ -112,6 +121,7 @@ namespace ProjectManager.Controllers
 
             return View(task);
         }
+
         public IActionResult Save(int?taskId, string description, string status, int? minTime,int? maxTime,int complitedLine,string newComment)
         {
             var task = _db.Tasks.Include("AdditionalFiles.Files").Include(x => x.WorkPeriods).Include("Activities.List")
@@ -203,7 +213,7 @@ namespace ProjectManager.Controllers
             _db.SaveChanges();
             return RedirectToAction("Index", "Dashboard");
         }
-
+        [HttpPost]
         public IActionResult SaveNewTask(int? assigneId,int? departmentId,int? teamId, string name,string description,string priority,string taskType,string deadline)
         {
             var newTask = new ProjectTask()
@@ -242,6 +252,46 @@ namespace ProjectManager.Controllers
             _db.SaveChanges();
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public IActionResult SaveNewTaskToSprint(int? sprintId, string name, string description, string priority, string taskType, string deadline)
+        {
+            var sprint = _db.Sprints.Include(x=>x.Team).Include("Team.Department.Project").Include(x => x.ListTasks).FirstOrDefault(x => x.Id == sprintId);
+            var newTask = new ProjectTask()
+            {
+                Name = name,
+                Description = description,
+                Status = TaskStatusEnum.ToDo,
+                Sprint = sprint,
+                Department = sprint.Team.Department,
+                Team = sprint.Team,
+                AddingTime = DateTime.Now,
+                ComplitedLine = 0,
+                Deadline = DateTime.Parse(deadline),
+                Priority = (PriorityEnum)Enum.Parse(typeof(PriorityEnum), priority, true),
+                Type = (TaskTypeEnum)Enum.Parse(typeof(TaskTypeEnum), taskType, true),
+
+            };
+            newTask.Project = newTask.Department.Project;
+            var files = new AdditionalFiles { Files = new List<FilePath>() };
+            var myFiles = Request.Form.Files;
+            var targetLocation = Path.Combine(_appEnvironment.WebRootPath, "images");
+            foreach (var file in myFiles)
+            {
+                if (file.Length > 0)
+                {
+                    var path = Path.Combine(targetLocation, file.FileName);
+                    using (var fileStream = System.IO.File.Create(path))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+                    files.Files.Add(new FilePath() { Owner = files, Path = file.FileName });
+                }
+            }
+            newTask.AdditionalFiles = files;
+            _db.Tasks.Add(newTask);
+            _db.SaveChanges();
+            return RedirectToAction("Edit","Sprint",new{ sprintId =sprint.Id});
+        }
 
         public IActionResult Show(int? taskId)
         {
@@ -249,10 +299,7 @@ namespace ProjectManager.Controllers
                 .Include(x => x.Assignee).Include(x => x.WorkPeriods);
             return View();
         }
-        public IActionResult Delete(int? taskId)
-        {
-            return View();
-        }
+
         public IActionResult AssignForMe(int? taskId)
         {
             var task = _db.Tasks.FirstOrDefault(x => x.Id == taskId);
@@ -265,6 +312,10 @@ namespace ProjectManager.Controllers
             _db.Tasks.Update(task);
             _db.SaveChanges();
             return RedirectToAction("Edit", "Task", new { taskId = task.Id });
+        }
+        public IActionResult Delete(int? taskId)
+        {
+            return View();
         }
     }
 }

@@ -18,8 +18,9 @@ using System.Security.Cryptography;
 using System.Text;
 using ProjectManager.Models.ConstAndEnums;
 
-namespace ProjectManager.Controllers
+namespace ProjectManager.Scrum.Controllers
 {
+    [Area("Scrum")]
     public class ProjectController : Controller
     {
         private UserManager<ApplicationUser> _userManager;
@@ -65,7 +66,7 @@ namespace ProjectManager.Controllers
             return RedirectToAction("Index", new {selectedProjId = projectId});
         }
 
-        public IActionResult Save(string name, string description, string deadline, string budget, string typeProj)
+        public  IActionResult Save(string name, string description,string deadline,string budget,string typeProj)
         {
             var myFile = Request.Form.Files["files"];
             var targetLocation = Path.Combine(_appEnvironment.WebRootPath, "images");
@@ -84,7 +85,7 @@ namespace ProjectManager.Controllers
             }
             var userId = _userManager.GetUserId(HttpContext.User);
             var user = _db.Users.FirstOrDefault(x => x.Id == userId);
-
+            
             var proj = new Project()
             {
                 //ProjectLead=participant,
@@ -93,8 +94,8 @@ namespace ProjectManager.Controllers
                 ImageUrl = myFile.FileName,
                 Budget = double.Parse(budget),
                 Deadline = DateTime.Parse(deadline),
-                ProjectType = (ProjectTypeEnum)Enum.Parse(typeof(ProjectTypeEnum), typeProj),
-                Activities = new ProjectActivities() { List = new List<ProjectActivity>() },
+                ProjectType = (ProjectTypeEnum)Enum.Parse(typeof(ProjectTypeEnum),typeProj),
+                Activities = new ProjectActivities(){List =new List<ProjectActivity>()},
             };
             var participant = new Participant()
             {
@@ -106,11 +107,11 @@ namespace ProjectManager.Controllers
             {
                 Initializer = participant,
                 Time = DateTime.Now,
-                Description =
-                              "< a href = 'https://www.tutorialspoint.com' > " + user.FullName + " </ a > " + "<p> created this project.</p>"
+                Description = 
+                              "< a href = 'https://www.tutorialspoint.com' > "+ user.FullName + " </ a > "+"<p> created this project.</p>"
 
             });
-
+           
             _db.Participants.Add(participant);
             _db.Projects.Add(proj);
             _db.SaveChanges();

@@ -16,6 +16,7 @@ namespace ProjectManager.Data
         public DbSet<Team> Teams { get; set; }
         public DbSet<Participant> Participants { get; set; }
         public DbSet<FilePath> FilePaths { get; set; }
+        public DbSet<Sprint> Sprints { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {

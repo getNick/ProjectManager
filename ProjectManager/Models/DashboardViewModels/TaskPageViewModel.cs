@@ -21,10 +21,10 @@ namespace ProjectManager.Models.DashboardViewModels
         public bool CanCreateTask { get; set; }
         [Display(Name = "All departments")]
         public List<Department> AllDepartments { get; set; }
-        public int? SelectedDepartmentId { get; set; }
+        public Department SelectedDepartment { get; set; }
         [Display(Name = "All teams")]
         public List<Team> AllTeams { get; set; }
-        public int? SelectedTeamId { get; set; }
+        public Team SelectedTeam { get; set; }
         public List<ProjectTask> CustomList { get; set; }
     }
 }

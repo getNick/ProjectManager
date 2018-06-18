@@ -1,12 +1,13 @@
-﻿@using ProjectManager.Models.ConstAndEnums
+﻿@using DevExtreme.AspNet.Mvc
+@using ProjectManager.Models.ConstAndEnums
 
 @{
     ViewData["Title"] = "Create";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
 }
 
 <h2>New project</h2>
-<form asp-action="Save" asp-controller="Project" method="post" enctype="multipart/form-data">
+<form action="/Scrum/Project/Save" method="post" enctype="multipart/form-data">
     <div class="row">
         <div class="form-group col-lg-6">
             <label for="usr">Name:</label>
@@ -46,6 +47,7 @@
                   .Value(DateTime.Now)
                   .Width("100%")
                   .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
+            
             <select name="typeProj" class="form-control">
                 <option value="@ProjectTypeEnum.Scrum" selected>@ProjectTypeEnum.Scrum</option>
                 <option value="@ProjectTypeEnum.Kanban" selected>@ProjectTypeEnum.Kanban</option>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ProjectManager.Models.ConstAndEnums;
 
 namespace ProjectManager.Models
 {
@@ -16,5 +17,6 @@ namespace ProjectManager.Models
         public List<Participant> Participants { get; set; }
         public List<ProjectTask> Tasks { get; set; }
         public ProjectActivities Activities { get; set; }
+        public ProjectTypeEnum ProjectType { get; set; }
     }
 }

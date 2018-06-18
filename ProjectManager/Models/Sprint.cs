@@ -12,5 +12,7 @@ namespace ProjectManager.Models
         public DateTime StartTime { get; set; }
         public DateTime Deadline { get; set; }
         public bool IsActive { get; set; }
+        public bool IsFinished { get; set; }
+        public int Duration { get; set; }
     }
 }
