@@ -17,7 +17,10 @@
                 switch (proj.ProjectType)
                 {
                     case ProjectTypeEnum.Scrum:
-                        typeProj = "Scrum";
+                        typeProj = "Scrum"; 
+                        break;
+                    case ProjectTypeEnum.Waterfall:
+                        typeProj = "Waterfall";
                         break;
                 }
                 if (proj.Id == Model.SelectedProject.Id)

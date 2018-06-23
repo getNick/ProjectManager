@@ -1,13 +1,8 @@
-﻿@model ProjectManager.Models.DashboardViewModels.TaskPageViewModel
+﻿@using DevExtreme.AspNet.Mvc
+@model ProjectManager.Models.DashboardViewModels.TaskPageViewModel
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
-}
-@if (Model.CanCreateTask)
-{
-    <div class="row">
-        <input type="button" class="btn btn-dark btn-lg" value="Create new task" onclick="location.href = '@Url.Action("Create", "Task")'" />
-    </div>
 }
 <div class="row">
     @if (Model.MyOpenTask != null)
@@ -49,113 +44,126 @@
     }
     @if (Model.CanCreateTask)
     {
-        <div class="col-lg-4">
-            <div class="form-group">
-                <label>Department:</label>
-                @if (Model.AllDepartments != null)
-                {
-                    <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
-                        @foreach (var dep in Model.AllDepartments)
-                        {
-                            if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
-                            {
-                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})" selected>@dep.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
-                            }
+
+        <input type="button" class="btn btn-primary btn-lg" value="Create new task" onclick="location.href = '@Url.Action("Create", "Task")'" />
+
+    }
+    @if (Model.iCusomer)
+    {
+        <input type="button" class="btn btn-primary btn-lg" value="Create new customer wish" onclick="location.href = '@Url.Action("AddCustomerWish", "Task")'" />
+    }
+</div>
+<div class="row">
+    <div class="dx-fieldset col-lg-6">
+        <div class="dx-field">
+            <div class="dx-field-label">Select the data source </div>
+            <div class="dx-field-value">
+                @(Html.DevExtreme().DropDownBox()
+                                                      .Value(Model.SelectorValue)
+                                                      .ValueExpr("ID")
+                                                      .DisplayExpr("Text")
+                                                      .DropDownOptions(o => o.Height(350))
+                                                      .DataSource(Model.SelectorData)
+                                                      .Placeholder("Select a value...")
+                                                      .ShowClearButton(true)
+                                                      .OnValueChanged("treeBox_valueChanged")
+                                                      .ContentTemplate(new TemplateName("EmbeddedTreeViewSingle"))
+                )
+                <div id="treeBox"></div>
+            </div>
+        </div>
+    </div>
+    <p id="selector" hidden>@Model.SelectorValue</p>
+</div>
+@using (Html.DevExtreme().NamedTemplate("EmbeddedTreeViewSingle"))
+{
+    @(Html.DevExtreme().TreeView()
+                          .DataSource(new JS(@"component.option(""dataSource"")"))
+                          .KeyExpr("ID")
+                          .DisplayExpr("Text")
+                          .ItemsExpr("Items")
+                          .ExpandedExpr("Expanded")
+                          .ParentIdExpr("CategoryId")
+                          .DataStructure(TreeViewDataStructure.Plain)
+                          .SelectionMode(NavSelectionMode.Single)
+                          .SelectByClick(true)
+                          .Height(235)
+                          .OnItemSelectionChanged(@<text>
+                        function(args) {
+                        var value = args.component.getSelectedNodesKeys();
+                        component.option("value", value);
                         }
-                    </select>
+                        </text>)
+                                                  .OnContentReady(@<text>
+                                                function(args) {
+                                                syncTreeViewSelection(args.component, component.option("value"));
+                                                }
+                                                </text>)
+    )
+}
+<script>
+    function syncTreeViewSelection(treeView, value) {
+        if (!value) {
+            treeView.unselectAll();
+        } else {
+            treeView.selectItem(value);
+            var s = document.getElementById("selector");
+            if (s.innerHTML != value) {
+                location.href = "/Scrum/Task/Index?selector=" + value;
+            }
+
+        }
+    }
+
+    function treeBox_valueChanged(e) {
+        var $treeView = e.component.content().find(".dx-treeview");
+        if ($treeView.length) {
+            syncTreeViewSelection($treeView.dxTreeView("instance"), e.value);
+        }
+    }
+</script>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">@Html.DisplayNameFor(model => model.CustomList)</div>
+            <div class="panel-body">
+                @{
+                    if (Model.CustomList != null)
+                    {
+                        foreach (var task in Model.CustomList)
+                        {
+                            @await Html.PartialAsync("_TaskTemplate", task)
+                        }
+                    }
                 }
             </div>
         </div>
-        <div class="col-lg-4">
-            <div class="form-group">
-                <label>Team:</label>
-                @if (Model.AllTeams != null)
-                {
-                    <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
-                        @foreach (var team in Model.AllTeams)
-                        {
-                            if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
-                            {
-                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})" selected>@team.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@Url.Action("Index", "Task", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
-                            }
-                        }
-                    </select>
-                }
-            </div>
-        </div>
-        <div class="col-lg-4">
+    </div>
+    @if (Model.CustomerWishes != null)
+    {
+        <div class="col-lg-6">
             <div class="panel panel-default">
+                <div class="panel-heading">@Html.DisplayNameFor(model => model.CustomerWishes)</div>
                 <div class="panel-body">
                     @{
-                        if (Model.CustomList != null)
+                        if (Model.CustomerWishes != null)
                         {
-                            foreach (var task in Model.CustomList)
-                            {
-                                @await Html.PartialAsync("_TaskTemplate", task)
-                            }
+                            <table class="table table-striped" style="width: 100%;">
+                                @foreach (var task in Model.CustomerWishes)
+                                {
+                                    <tr>
+                                        <td>@task.Autor.User.FullName</td>
+                                        <td>@task.Name</td>
+                                        <td>@task.Deadline.ToString()</td>
+                                    </tr>
+                                }
+                            </table>
                         }
                     }
                 </div>
             </div>
         </div>
     }
-</div>
-<div class="row">
-    <div class="col-lg-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyTeamTasks)</div>
-            <div class="panel-body">
-                @{
-                    if (Model.MyTeamTasks != null)
-                    {
-                        foreach (var task in Model.MyTeamTasks)
-                        {
-                            @await Html.PartialAsync("_TaskTemplate", task)
-                        }
-                    }
-                }
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyDepartmentTasks)</div>
-            <div class="panel-body">
-                @{
-                    if (Model.MyDepartmentTasks != null)
-                    {
-                        foreach (var task in Model.MyDepartmentTasks)
-                        {
-                            @await Html.PartialAsync("_TaskTemplate", task)
-                        }
-                    }
-                }
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">@Html.DisplayNameFor(model => model.MyProjectTasks)</div>
-            <div class="panel-body">
-                @{
-                    if (Model.MyProjectTasks != null)
-                    {
-                        foreach (var task in Model.MyProjectTasks)
-                        {
-                            @await Html.PartialAsync("_TaskTemplate", task)
-                        }
-                    }
-                }
-            </div>
-        </div>
-    </div>
 </div>
 

@@ -1,0 +1,107 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/js/appointments.js"></script>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="form-group">
+            <label>Department:</label>
+            @if (Model.AllDepartments != null)
+            {
+                <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
+                    @foreach (var dep in Model.AllDepartments)
+                    {
+                        if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = dep.Id})" selected>@dep.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
+                        }
+                    }
+                </select>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="form-group">
+            <label>Team:</label>
+            @if (Model.AllTeams != null)
+            {
+                <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                    @foreach (var team in Model.AllTeams)
+                    {
+                        if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})" selected>@team.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
+                        }
+                    }
+                </select>
+            }
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
+        @(Html.DevExtreme().PieChart()
+                      .ID("pie")
+                      .Type(PieChartType.Doughnut)
+                      .Palette(VizPalette.SoftPastel)
+                      .Title("Task status")
+                      .Legend(l => l
+                          .HorizontalAlignment(HorizontalAlignment.Center)
+                          .VerticalAlignment(VerticalEdge.Bottom)
+                      )
+                      .Export(e => e.Enabled(true))
+                      .Series(s => s
+                          .Add()
+                          .SmallValuesGrouping(g => g
+                              .Mode(SmallValuesGroupingMode.TopN)
+                              .TopCount(4)
+                          )
+                          .ArgumentField("Status")
+                          .ValueField("Percent")
+                          .Label(l => l
+                              .Visible(true)
+                              .Format(Format.FixedPoint)
+                              .CustomizeText(@<text>
+                            function (point) {
+                            return point.argumentText + ": " + point.valueText + "%";
+                            }
+                            </text>)
+                                                  .Connector(c => c
+                                                      .Visible(true)
+                                                      .Width(1)
+                                                  )
+                                              )
+                                          )
+                                          .DataSource(@Model.TaskStatus)
+        )
+    </div>
+    <div class="col-lg-6">
+        @(Html.DevExtreme().Scheduler()
+                      .ID("scheduler")
+                      .DataSource(@Model.WorkPeriods)
+                      .Views(new SchedulerViewType[] {
+                  SchedulerViewType.Week,
+                  SchedulerViewType.Month,
+                      })
+                      .CurrentView(SchedulerViewType.WorkWeek)
+                      .CurrentDate(DateTime.Now)
+                      .ShowAllDayPanel(false)
+                      .CellDuration(60)
+                      .StartDayHour(8)
+                      .EndDayHour(21)
+                      .Editing(false)
+                      .Height(600)
+        )
+    </div>
+</div>
+

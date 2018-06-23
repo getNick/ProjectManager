@@ -50,7 +50,19 @@ namespace ProjectManager.Scrum.Controllers
             var vm = new ShowProjectViewModel();
             vm.AllProjects = _db.Participants.Include(x => x.User).Include(x => x.Project)
                 .Where(x => x.User.Id == userId).Select(x => x.Project).ToList();
-            vm.SelectedProject = vm.AllProjects?.FirstOrDefault(x => x.Id == user.LastSelectedProjectId);
+            if (user.LastSelectedProjectId != null)
+            {
+                vm.SelectedProject = vm.AllProjects?.FirstOrDefault(x => x.Id == user.LastSelectedProjectId);
+            }
+            else
+            {
+                vm.SelectedProject = vm.AllProjects?.FirstOrDefault();
+            }
+
+            if (vm.SelectedProject != null)
+            {
+                user.LastSelectedProjectId = vm.SelectedProject.Id;
+            }
             _db.Users.Update(user);
             _db.SaveChanges();
 

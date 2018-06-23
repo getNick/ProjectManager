@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using ProjectManager.Models.ConstAndEnums;
@@ -28,5 +30,7 @@ namespace ProjectManager.Models
         public List<ProjectTask> Subtasks { get; set; }
         public Comments Comments { get; set; }
         public ProjectActivities Activities { get; set; }
+        [NotMapped]
+        public Color KanbanColor { get; set; }
     }
 }

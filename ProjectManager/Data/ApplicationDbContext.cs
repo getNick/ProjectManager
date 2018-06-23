@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ProjectManager.Areas.Waterfall.Models;
 using ProjectManager.Models;
+using ProjectManager.Models.ProductKnowledge;
 
 namespace ProjectManager.Data
 {
@@ -17,6 +18,11 @@ namespace ProjectManager.Data
         public DbSet<Participant> Participants { get; set; }
         public DbSet<FilePath> FilePaths { get; set; }
         public DbSet<Sprint> Sprints { get; set; }
+        public DbSet<CustomerWish> CustomerWishes { get; set; }
+        public DbSet<Task> GanttTasks { get; set; }
+        public DbSet<Link> GanttLinks { get; set; }
+        public DbSet<Rule> ProductKnowledgeRules { get; set; }
+        public DbSet<Variable> ProductKnowledgeVariables { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {

@@ -1,0 +1,12 @@
+﻿@model ProjectManager.Models.ProjectViewModels.RecomendationViewModel
+
+<div class="row">
+    <div align="center">
+            @foreach (var rating in @Model.Ratings)
+            {
+            <h4>
+                @rating.Name suitable for @rating.Value %"
+            </h4>
+            }
+    </div>
+</div>

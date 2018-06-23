@@ -1,0 +1,212 @@
+﻿@using DevExtreme.AspNet.Mvc
+@model ProjectManager.Areas.Scrum.ViewModels.ReportPageViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
+}
+<script src="~/js/appointments.js"></script>
+<div class="row">
+    <div class="col-lg-6">
+        <div class="form-group">
+            <label>Department:</label>
+            @if (Model.AllDepartments != null)
+            {
+                <select class="form-control" id="sel1" name="departmentId" onchange="if (this.value) window.location.href = this.value">
+                    @foreach (var dep in Model.AllDepartments)
+                    {
+                        if ((Model.SelectedDepartment != null) && (dep.Id == Model.SelectedDepartment.Id))
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = dep.Id})" selected>@dep.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = dep.Id})">@dep.Name</option>
+                        }
+                    }
+                </select>
+            }
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="form-group">
+            <label>Team:</label>
+            @if (Model.AllTeams != null)
+            {
+                <select name="teamId" class="form-control" onchange="if (this.value) window.location.href = this.value">
+                    @foreach (var team in Model.AllTeams)
+                    {
+                        if ((Model.SelectedTeam != null) && (team.Id == Model.SelectedTeam.Id))
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})" selected>@team.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@Url.Action("Index", "Report", new {selectedDepartmentId = Model.SelectedDepartment.Id, selectedTeamId = team.Id})">@team.Name</option>
+                        }
+                    }
+                </select>
+            }
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-6">
+        @(Html.DevExtreme().PieChart()
+                      .ID("pie")
+                      .Type(PieChartType.Doughnut)
+                      .Palette(VizPalette.SoftPastel)
+                      .Title("Task status")
+                      .Legend(l => l
+                          .HorizontalAlignment(HorizontalAlignment.Center)
+                          .VerticalAlignment(VerticalEdge.Bottom)
+                      )
+                      .Export(e => e.Enabled(true))
+                      .Series(s => s
+                          .Add()
+                          .SmallValuesGrouping(g => g
+                              .Mode(SmallValuesGroupingMode.TopN)
+                              .TopCount(4)
+                          )
+                          .ArgumentField("Status")
+                          .ValueField("Percent")
+                          .Label(l => l
+                              .Visible(true)
+                              .Format(Format.FixedPoint)
+                              .CustomizeText(@<text>
+                            function (point) {
+                            return point.argumentText + ": " + point.valueText + "%";
+                            }
+                            </text>)
+                                                  .Connector(c => c
+                                                      .Visible(true)
+                                                      .Width(1)
+                                                  )
+                                              )
+                                          )
+                                          .DataSource(@Model.TaskStatus)
+        )
+    </div>
+    @*<div id="chart-demo" class="col-lg-6">*@
+        @*@(Html.DevExtreme().Chart()
+                    .ID("line-chart")
+                    .Palette(VizPalette.Violet)
+                    .CommonSeriesSettings(s => s
+                        .ArgumentField("Country")
+                        .Type(SeriesType.Line)
+                    )
+                    .Margin(m => m.Bottom(20))
+                    .ArgumentAxis(a => a
+                        .ValueMarginsEnabled(false)
+                        .DiscreteAxisDivisionMode(DiscreteAxisDivisionMode.CrossLabels)
+                        .Grid(g => g.Visible(true))
+                    )
+                    .Series(s =>
+                    {
+                        s.Add().ValueField("SumLines").Name("Sum all complited line");
+                    })
+                    .Legend(l => l
+                        .VerticalAlignment(VerticalEdge.Bottom)
+                        .HorizontalAlignment(HorizontalAlignment.Center)
+                        .ItemTextPosition(Position.Bottom)
+                    )
+                    .Title(t => t
+                        .Text("Energy Consumption in 2004")
+                        .Subtitle(s => s.Text("(Millions of Tons, Oil Equivalent)"))
+                    )
+                    .Export(e => e.Enabled(true))
+                    .Tooltip(t => t
+                        .Enabled(true)
+                        .CustomizeTooltip(@<text>
+                        function (arg) {
+                        return {
+                        text: arg.valueText
+                        };
+                        }
+                        </text>)
+                                )
+                                .DataSource(new List<object> {
+                        new { SumLines = 1000},
+                        new { SumLines = 850 },
+                        new { SumLines =900},
+                        new { SumLines = 750},
+                        new { SumLines = 350},
+                        new { SumLines = 0 }
+                                })
+        )*@
+        @*@(Html.DevExtreme().Chart()
+              .ID("chart")
+              .Series(s =>
+              {
+                  s.Add().ArgumentField("Country").ValueField("Val");
+                  s.Add().ArgumentField("Country").ValueField("Ideal");
+              })
+              .ArgumentAxis(a => { a.Label(l => l.OverlappingBehavior(OverlappingBehavior.Stagger)); })
+              .Legend(l => l
+                  .Visible(false)
+              )
+              .DataSource(new List<object> {
+                  new { Country = "1", Val = 100, Ideal=100},
+                  new { Country = "2", Val = 90 , Ideal=92.85},
+                  new { Country = "3", Val = 80 , Ideal=85.71},
+                  new { Country = "4", Val = 75 , Ideal=78.57},
+                  new { Country = "5", Val = 75 , Ideal=71.42},
+                  new { Country = "6", Val = 72 , Ideal=64.28},
+                  new { Country = "7", Val = 70 , Ideal=57.14},
+                  new { Country = "8", Val = 60 , Ideal=50},
+                  new { Country = "9", Val = 50 , Ideal=42.85},
+                  new { Country = "10", Val = 30 , Ideal=35.71},
+                  new { Country = "11", Val = 20 , Ideal=28.57},
+                  new { Country = "12", Val = 10 , Ideal=21.43},
+                  new { Country = "13", Val = 5 , Ideal=14.29},
+                  new { Country = "14", Val = 0 , Ideal=7.14},
+              }
+              ).
+              Title("Burndown Chart")
+              )*@
+
+    </div>
+    
+    <br/>
+    <div class="row">
+        <div class="col-lg-6">
+            @(Html.DevExtreme().Scheduler()
+                  .ID("scheduler")
+                  .DataSource(@Model.WorkPeriods)
+                  .Views(new SchedulerViewType[] {
+                      SchedulerViewType.Week,
+                      SchedulerViewType.Month,
+                  })
+                  .CurrentView(SchedulerViewType.WorkWeek)
+                  .CurrentDate(DateTime.Now)
+                  .ShowAllDayPanel(true)
+                  .CellDuration(60)
+                  .StartDayHour(8)
+                  .EndDayHour(21)
+                  .Editing(false)
+                  .Height(600))
+        </div>
+        <div class="col-lg-6">
+            @(Html.DevExtreme().Chart()
+                  .ID("chart2")
+                  .Series(s => s
+                      .Add()
+                      .ArgumentField("Day")
+                      .ValueField("Oranges")
+                      .Name("Time loger")
+                      .Type(SeriesType.Bar)
+                      .Color("#3e67ce")
+                  )
+                  .DataSource(new List<object> {
+                      new { Day = "Monday", Oranges = 7.48 },
+                      new { Day = "Tuesday", Oranges = 0 },
+                      new { Day = "Wednesday", Oranges = 0 },
+                      new { Day = "Thursday", Oranges = 0 },
+                      new { Day = "Friday", Oranges = 0 },
+                  })
+                  )
+
+        </div>
+    </div>
+
+</div>
+

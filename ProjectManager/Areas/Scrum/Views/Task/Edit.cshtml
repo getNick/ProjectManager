@@ -1,86 +1,99 @@
 ﻿@using DevExtreme.AspNet.Mvc
 @using ProjectManager.Models.ConstAndEnums
-@model ProjectManager.Models.ProjectTask
+@model ProjectManager.Areas.Scrum.ViewModels.EditTaskViewModel
 @{
     ViewData["Title"] = "Edit";
-    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="row">
-    <div class="col-lg-6 col-lg-offset-3">
+    <div class="col-lg-8 col-lg-offset-2">
         <div clas="panel panel-defaul">
             <table style="width: 100%">
                 <tr>
-                    <td style="vertical-align: middle; height: 40px; width: 25%">
-                        <img src="/images/system/@Model.Type.GetDisplayDescription()" style="height: 100%;" />
-                    </td>
-                    <td style="vertical-align: middle; height: 40px; width: 35%">
-                        <p>@Model.Name</p>
-                    </td>
                     <td style="vertical-align: middle; height: 40px; width: 10%">
-                        <img src="/images/system/@Model.Priority.GetDisplayDescription()" style="height: 50%" />
+                        <img src="/images/system/@Model.Task.Type.GetDisplayDescription()" style="height: 100%;" />
                     </td>
-                    <td style="vertical-align: middle; height: 40px; width: 30%">
-                        <p>@Model.Assignee?.User?.FullName</p>
+                    <td style="vertical-align: middle; height: 40px; width: 25%">
+                        <p>@Model.Task.Name</p>
                     </td>
-                    @if (Model.Assignee == null)
+                    <td style="vertical-align: middle; height: 40px; width: 5%">
+                        <img src="/images/system/@Model.Task.Priority.GetDisplayDescription()" style="height: 50%" />
+                    </td>
+                    @if (Model.Task.Assignee == null)
                     {
-                        <td style="vertical-align: middle; height: 40px; width: 30%">
-                            <input type="button" class="btn btn-default" value="Assign for me" onclick="location.href = '@Url.Action("AssignForMe", "Task",new{taskId=Model.Id})'" />
+                        <td style="vertical-align: middle; height: 40px; width: 20%">
+                            <p>Not assigned</p>
                         </td>
-                    }else if (User.Identity.Name == @Model.Assignee.User.UserName)
+                    }
+                    else
                     {
-                        bool haveActivePeriod = Model.WorkPeriods.FirstOrDefault(x => x.Finished == false) != null;
-
-                        if (haveActivePeriod)
+                        <td style="vertical-align: middle; height: 40px; width: 20%">
+                            <p>@Model.Task.Assignee?.User?.FullName</p>
+                        </td>
+                    }
+                    
+                    @if (Model.CanIAssingThisTask)
+                    {
+                        <td style="vertical-align: middle; height: 40px; width: 10%">
+                            <input type="button" class="btn btn-default" value="Assign for me" onclick="location.href = '@Url.Action("AssignForMe", "Task",new{taskId=Model.Task.Id})'" />
+                        </td>
+                    }
+                    else if (Model.IsMyTask)
+                    {
+                        if (Model.HaveActivePeriod)
                         {
-                            <td style="vertical-align: middle; height: 40px; width: 30%">
-                                <input type="button" class="btn btn-default" value="Stop" onclick="location.href = '@Url.Action("Stop", "Task",new{taskId=Model.Id})'" />
+                            <td style="vertical-align: middle; height: 40px; width: 10%">
+                                <input type="button" class="btn btn-default" value="Stop" onclick="location.href = '@Url.Action("Stop", "Task",new{taskId=Model.Task.Id})'" />
                             </td>
+                           
                         }
                         else
                         {
-                            <td style="vertical-align: middle; height: 40px; width: 30%">
-                                <input type="button" class="btn btn-default" value="Start" onclick="location.href = '@Url.Action("Start", "Task",new{taskId=Model.Id})'" />
+                            <td style="vertical-align: middle; height: 40px; width: 10%">
+                                <input type="button" class="btn btn-default" value="Start" onclick="location.href = '@Url.Action("Start", "Task",new{taskId=Model.Task.Id})'" />
                             </td>
                         }
                     }
+                    <td style="vertical-align: middle; height: 40px; width: 30%">
+                        <p id="timer"></p>
+                    </td>
                 </tr>
             </table>
         </div>
     </div>
 </div>
 <form action="/Scrum/Task/Save" method="post" enctype="multipart/form-data">
-    <input type="text" value="@Model.Id" name="taskId" hidden />
+    <input type="text" value="@Model.Task.Id" name="taskId" hidden />
     <div class="row">
         <div class="form-group col-lg-6">
             <div class="form-group">
                 <label for="usr">Description:</label>
-                <textarea class="form-control" rows="5" id="description" name="description">@Model.Description</textarea>
+                <textarea class="form-control" rows="5" id="description" name="description">@Model.Task.Description</textarea>
             </div>
             <label>Additional files:</label>
             <ul class="list-group">
-                @foreach (var file in Model.AdditionalFiles.Files)
+                @foreach (var file in Model.Task.AdditionalFiles.Files)
                 {
                     <li class="list-group-item"><a href="~/images/@file.Path">@file.Path</a></li>
                 }
             </ul>
             <label>Load more files:</label>
             @(Html.DevExtreme().FileUploader()
-                  .ID("file-uploader")
-                  .Name("files")
-                  .Multiple(true)
-                  .Accept("*")
-                  .UploadMode(FileUploadMode.UseForm)
-                  .OnValueChanged("fileUploader_valueChanged")
-                  )
+                                                  .ID("file-uploader")
+                                                  .Name("files")
+                                                  .Multiple(true)
+                                                  .Accept("*")
+                                                  .UploadMode(FileUploadMode.UseForm)
+                                                  .OnValueChanged("fileUploader_valueChanged")
+            )
         </div>
         <div class="form-group col-lg-6">
             <div class="form-group">
                 <div class="form-group">
                     <label>Status:</label>
                     <select name="status" class="form-control">
-                        @if (Model.Status == TaskStatusEnum.Backlog)
+                        @if (Model.Task.Status == TaskStatusEnum.Backlog)
                         {
                             <option value="@TaskStatusEnum.Backlog" selected>@TaskStatusEnum.Backlog</option>
                         }
@@ -88,7 +101,7 @@
                         {
                             <option value="@TaskStatusEnum.Backlog">@TaskStatusEnum.Backlog</option>
                         }
-                        @if (Model.Status == TaskStatusEnum.ToDo)
+                        @if (Model.Task.Status == TaskStatusEnum.ToDo)
                         {
                             <option value="@TaskStatusEnum.ToDo" selected>@TaskStatusEnum.ToDo</option>
                         }
@@ -96,7 +109,7 @@
                         {
                             <option value="@TaskStatusEnum.ToDo">@TaskStatusEnum.ToDo</option>
                         }
-                        @if (Model.Status == TaskStatusEnum.InProgress)
+                        @if (Model.Task.Status == TaskStatusEnum.InProgress)
                         {
                             <option value="@TaskStatusEnum.InProgress" selected>@TaskStatusEnum.InProgress</option>
                         }
@@ -104,7 +117,7 @@
                         {
                             <option value="@TaskStatusEnum.InProgress">@TaskStatusEnum.InProgress</option>
                         }
-                        @if (Model.Status == TaskStatusEnum.Done)
+                        @if (Model.Task.Status == TaskStatusEnum.Done)
                         {
                             <option value="@TaskStatusEnum.Done" selected>@TaskStatusEnum.Done</option>
                         }
@@ -113,7 +126,7 @@
                             <option value="@TaskStatusEnum.Done">@TaskStatusEnum.Done</option>
                         }
 
-                        @if (Model.Status == TaskStatusEnum.Testing)
+                        @if (Model.Task.Status == TaskStatusEnum.Testing)
                         {
                             <option value="@TaskStatusEnum.Testing" selected>@TaskStatusEnum.Testing</option>
                         }
@@ -125,23 +138,23 @@
                     </select>
                     @{
                         int hours = 0;
-                        if (Model.WorkPeriods != null)
+                        if (Model.Task.WorkPeriods != null)
                         {
-                            hours = Model.WorkPeriods.Sum(x => x.End.Subtract(x.Start).Hours);
+                            hours = Model.Task.WorkPeriods.Sum(x => x.End.Subtract(x.Start).Hours);
                         }
                     }
                     <div class="form-group">
                         <label> Time estimates</label>
                         <div class="input-group">
                             <span class="input-group-addon">Min</span>
-                            <input type="text" class="form-control" name="minTime" value="@Model.MinEstimate.Hours">
+                            <input type="text" class="form-control" name="minTime" value="@Model.Task.MinEstimate.Hours">
                             <span class="input-group-addon">Max</span>
-                            <input type="text" class="form-control" name="maxTime" value="@Model.MaxEstimate.Hours">
+                            <input type="text" class="form-control" name="maxTime" value="@Model.Task.MaxEstimate.Hours">
                             <span class="input-group-addon">Spend now</span>
                             <input type="text" class="form-control" value="@hours" readonly>
                         </div>
                     </div>
-                    @{ var dayToDeadline = Model.Deadline.Subtract(DateTime.Now).Days.ToString();}
+                    @{ var dayToDeadline = Model.Task.Deadline.Subtract(DateTime.Now).Days.ToString();}
                     <div class="form-group">
                         <label>Day to deadline @dayToDeadline</label>
                     </div>
@@ -150,16 +163,16 @@
                             <div class="dx-field-label">Progress</div>
                             <div class="dx-field-value">
                                 @(Html.DevExtreme().Slider().Name("complitedLine")
-                                      .Min(0)
-                                      .Max(100)
-                                      .Value(@Model.ComplitedLine)
-                                      .Tooltip(t => t
-                                          .Enabled(true)
-                                          .Format(new JS("formatLabel"))
-                                          .Position(VerticalEdge.Bottom)
-                                          .ShowMode(SliderTooltipShowMode.Always)
-                                      )
-                                      )
+                                                                      .Min(0)
+                                                                      .Max(100)
+                                                                      .Value(@Model.Task.ComplitedLine)
+                                                                      .Tooltip(t => t
+                                                                          .Enabled(true)
+                                                                          .Format(new JS("formatLabel"))
+                                                                          .Position(VerticalEdge.Bottom)
+                                                                          .ShowMode(SliderTooltipShowMode.Always)
+                                                                      )
+                                )
                                 <script>
                                     function formatLabel(value) {
                                         return value + "%";
@@ -184,10 +197,10 @@
                     Comments
                 </div>
                 <div class="panel-body">
-                    @if (Model.Comments != null)
+                    @if (Model.Task.Comments != null)
                     {
                         <ul class="list-group">
-                            @foreach (var comment in Model.Comments.List)
+                            @foreach (var comment in Model.Task.Comments.List)
                             {
                                 <li class="list-group-item">
 
@@ -201,7 +214,7 @@
                     }
                     else
                     {
-                        <h3> Create first comment</h3>
+                        <h4> Create first comment</h4>
                     }
                     <textarea class="form-control" rows="2" id="comment" name="newComment"></textarea>
                 </div>
@@ -210,7 +223,7 @@
     </div>
     <div class="row">
         <div align="right">
-            <input type="submit" class="btn btn-default" value="Save"/>
+            <input type="submit" class="btn btn-default" value="Save" />
         </div>
     </div>
 </form>
@@ -365,4 +378,28 @@
             '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
             '//www.tinymce.com/css/codepen.min.css']
     });
+    // Set the date we're counting down to
+    var spentTime = @Model.AlreadySpentTime;
+    var koef = 0
+    var active=@Model.HaveActivePeriod.ToString().ToLower();
+    if (active) {
+        koef = 1000;
+    }
+    // Update the count down every 1 second
+    var x = setInterval(function () {
+
+        spentTime+=koef;
+        // Find the distance between now an the count down date
+
+
+        // Time calculations for days, hours, minutes and seconds
+        var days = Math.floor(spentTime / (1000 * 60 * 60 * 24));
+        var hours = Math.floor((spentTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        var minutes = Math.floor((spentTime % (1000 * 60 * 60)) / (1000 * 60));
+        var seconds = Math.floor((spentTime % (1000 * 60)) / 1000);
+
+        // Output the result in an element with id="demo"
+        document.getElementById("timer").innerHTML = days + "d " + hours + "h "
+            + minutes + "m " + seconds + "s ";
+    }, 1000);
 </script>

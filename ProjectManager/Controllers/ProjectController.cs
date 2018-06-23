@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -285,6 +286,17 @@ namespace ProjectManager.Controllers
                // Customers = proj.Participants?.Where(x=>x.Role==RoleEnum.Customer).ToList(),
             };
             return View("Show", vm);
+        }
+        public JsonResult Recomendation([FromBody]RecomendationViewModel vm)
+        //public IActionResult Recomendation( int? teamSize,bool innovation, bool clearCutIdea,bool regularCommunication,bool customerPartner)
+        {
+            //vm.Ratings=new List<Rating>() { 
+            //    new Rating("Kanban",65),
+            //    new Rating("Scrum",55),
+            //    new Rating("Waterfall",10),
+            //    };
+            vm.Scrum = 75;
+            return Json(vm);
         }
     }
 }

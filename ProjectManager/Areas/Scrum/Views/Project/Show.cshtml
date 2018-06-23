@@ -142,7 +142,7 @@
                 )
                 using (Html.DevExtreme().NamedTemplate("createTeam-template"))
                 {
-                    <form id="newTeamForm" asp-area="Scrum" asp-controller="Project" asp-action="AddTeam">
+                    <form id="newTeamForm"  action="/Scrum/Project/AddTeam">
                         <input type="text" value="@Model.SelectedDepartmentId" name="departmentId" hidden />
                         <div class="form-group">
                             <label for="usr">Name:</label>
@@ -221,7 +221,7 @@
             <h3>Customers</h3>
         </div>
         <div class="panel-body">
-            <form asp-controller="Project" asp-action="AddCustomers" id="customersForm">
+            <form  action="/Scrum/Project/AddCustomers" id="customersForm">
                 <div class="form-group">
                     <table id="customerTable" class=" table order-list">
                         <tbody>

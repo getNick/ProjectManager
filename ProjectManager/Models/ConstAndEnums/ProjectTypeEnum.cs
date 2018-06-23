@@ -9,6 +9,7 @@ namespace ProjectManager.Models.ConstAndEnums
     {
         Scrum,
         Kanban,
+        Waterfall,
 
     }
 }

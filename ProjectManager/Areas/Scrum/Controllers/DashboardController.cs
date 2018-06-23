@@ -26,29 +26,21 @@ namespace ProjectManager.Scrum.Controllers
             _userManager = userManager;
             _signInManager = signInManager;
         }
-        public IActionResult Index(int?selectedProjId)
+        public IActionResult Index(string selector)
         {
             if (!_signInManager.IsSignedIn(User))
             {
                 return RedirectToAction("Login", "Account");
             }
-            var part = _db.Participants.Include(x => x.Project).Include(x => x.Department).Include(x => x.Team).Include(x => x.User)
-                .ToList();
             var userId = _userManager.GetUserId(HttpContext.User);
             var user = _db.Users.FirstOrDefault(x => x.Id == userId);
-            //var projId = HttpContext.Session.GetInt32(SessionKeys.ProjectId);
             Participant participant;
-            if (selectedProjId != null)
-            {
-                user.LastSelectedProjectId = selectedProjId;
-                _db.Users.Update(user);
-            }
             if (user.LastSelectedProjectId == null)
             {
-                var participants = _db.Participants.Include(x => x.User).Include(x => x.Project).ThenInclude(x=>x.Tasks).Where(x => x.User.Id == userId).ToList();
-                if (participants.Count> 1)
+                var participants = _db.Participants.Include(x => x.User).Include(x => x.Project).ThenInclude(x => x.Tasks).Where(x => x.User.Id == userId).ToList();
+                if (participants.Count > 1)
                 {
-                    return View("SelectProject", participants);//todo create
+                    return RedirectToAction("Index", "Project");
                 }
 
                 if (participants.Count == 0)
@@ -61,18 +53,81 @@ namespace ProjectManager.Scrum.Controllers
             }
             else
             {
-                participant= _db.Participants.Include(x => x.User).Include(x => x.Project).FirstOrDefault(x => (x.User.Id == userId)&(x.Project.Id==user.LastSelectedProjectId));
+                participant = _db.Participants.Include(x => x.User).Include(x => x.Project).FirstOrDefault(x => (x.User.Id == userId) & (x.Project.Id == user.LastSelectedProjectId));
             }
-            PersonalDashboard vm=new PersonalDashboard();
-            var q = _db.Tasks.ToList();
-            var allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project)
-                .Where(x => (x.Project.Id == user.LastSelectedProjectId)).ToList();
-            vm.ActiveProject = participant.Project;
-            vm.Backlog =  allTasks.Where(x => x.Status == TaskStatusEnum.Backlog).ToList();
-            vm.ToDo = allTasks.Where(x => x.Status == TaskStatusEnum.ToDo).ToList();
-            vm.InProgress = allTasks.Where(x => x.Status == TaskStatusEnum.InProgress).ToList();
-            vm.Testing = allTasks.Where(x => x.Status == TaskStatusEnum.Testing).ToList();
-            vm.Done = allTasks.Where(x => x.Status == TaskStatusEnum.Done).ToList();
+
+            if (participant == null)
+            {
+                return View("AccessToProjectDenied");
+            }
+            PersonalDashboard vm = new PersonalDashboard();
+            var data = _db.Departments.Include(x => x.Teams).ThenInclude(x => x.Participants).ThenInclude(x => x.User).Where(x => x.Project.Id == participant.Project.Id).ToList();
+            vm.SelectorData = new List<object>();
+            foreach (var department in data)
+            {
+                vm.SelectorData.Add(new SelectorItem()
+                {
+                    ID = department.Id.ToString(),
+                    Text = department.Name,
+                    Expanded = true,
+                });
+                foreach (var team in department.Teams)
+                {
+                    vm.SelectorData.Add(new SelectorItem()
+                    {
+                        ID = department.Id + "_" + team.Id,
+                        CategoryId = department.Id.ToString(),
+                        Text = team.Name,
+                    });
+                    foreach (var teamParticipant in team.Participants)
+                    {
+                        vm.SelectorData.Add(new SelectorItem()
+                        {
+                            ID = department.Id + "_" + team.Id + "_" + teamParticipant.Id,
+                            CategoryId = department.Id + "_" + team.Id,
+                            Text = teamParticipant.User.FullName,
+                        });
+                    }
+                }
+            }
+
+            if (selector == null)
+            {
+                return View(vm);
+            }
+
+            vm.SelectorValue = selector;
+            var parseSelector = selector.Split('_');
+            List<ProjectTask> allTasks = null;
+            switch (parseSelector.Length)
+            {
+                case 3:
+                    {
+                        allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project).Include(x=>x.Sprint)
+                            .Where(x => (x.Assignee.Id == Int32.Parse(parseSelector[2])&(x.Sprint.IsActive))).ToList();
+                    }
+                    break;
+                case 2:
+                    {
+                        allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project)
+                            .Where(x => (x.Team.Id == Int32.Parse(parseSelector[1]) & (x.Sprint.IsActive))).ToList();
+                    }
+                    break;
+                case 1:
+                    {
+                        allTasks = _db.Tasks.Include(x => x.Assignee).ThenInclude(x => x.User).Include(x => x.Project)
+                            .Where(x => (x.Department.Id == Int32.Parse(parseSelector[0]) & (x.Sprint.IsActive))).ToList();
+                    }
+                    break;
+            }
+
+            if (allTasks != null)
+            {
+                vm.ToDo = allTasks.Where(x => x.Status == TaskStatusEnum.ToDo).ToList();
+                vm.InProgress = allTasks.Where(x => x.Status == TaskStatusEnum.InProgress).ToList();
+                vm.Testing = allTasks.Where(x => x.Status == TaskStatusEnum.Testing).ToList();
+                vm.Done = allTasks.Where(x => x.Status == TaskStatusEnum.Done).ToList();
+            }
             return View(vm);
         }
     }

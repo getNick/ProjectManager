@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using ProjectManager.Data;
 using ProjectManager.Models.ConstAndEnums;
+using ProjectManager.Models.ProductKnowledge;
 using System;
 
 namespace ProjectManager.Migrations
@@ -127,6 +128,44 @@ namespace ProjectManager.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("ProjectManager.Areas.Waterfall.Models.Link", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("SourceTaskId");
+
+                    b.Property<int>("TargetTaskId");
+
+                    b.Property<string>("Type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GanttLinks");
+                });
+
+            modelBuilder.Entity("ProjectManager.Areas.Waterfall.Models.Task", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("Duration");
+
+                    b.Property<int?>("ParentId");
+
+                    b.Property<decimal>("Progress");
+
+                    b.Property<DateTime>("StartDate");
+
+                    b.Property<string>("Text");
+
+                    b.Property<string>("Type");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GanttTasks");
                 });
 
             modelBuilder.Entity("ProjectManager.Models.AdditionalFiles", b =>
@@ -259,7 +298,7 @@ namespace ProjectManager.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("CustomerWish");
+                    b.ToTable("CustomerWishes");
                 });
 
             modelBuilder.Entity("ProjectManager.Models.Department", b =>
@@ -328,6 +367,58 @@ namespace ProjectManager.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Participants");
+                });
+
+            modelBuilder.Entity("ProjectManager.Models.ProductKnowledge.Expression", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int?>("LeftVariableId");
+
+                    b.Property<int>("Ratio");
+
+                    b.Property<string>("RightVariable");
+
+                    b.Property<int?>("RuleId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeftVariableId");
+
+                    b.HasIndex("RuleId");
+
+                    b.ToTable("Expression");
+                });
+
+            modelBuilder.Entity("ProjectManager.Models.ProductKnowledge.Rule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Result");
+
+                    b.Property<int?>("RightVariableId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RightVariableId");
+
+                    b.ToTable("ProductKnowledgeRules");
+                });
+
+            modelBuilder.Entity("ProjectManager.Models.ProductKnowledge.Variable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Name");
+
+                    b.Property<string>("Value");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProductKnowledgeVariables");
                 });
 
             modelBuilder.Entity("ProjectManager.Models.Project", b =>
@@ -642,6 +733,24 @@ namespace ProjectManager.Migrations
                     b.HasOne("ProjectManager.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("ProjectManager.Models.ProductKnowledge.Expression", b =>
+                {
+                    b.HasOne("ProjectManager.Models.ProductKnowledge.Variable", "LeftVariable")
+                        .WithMany()
+                        .HasForeignKey("LeftVariableId");
+
+                    b.HasOne("ProjectManager.Models.ProductKnowledge.Rule")
+                        .WithMany("Expressions")
+                        .HasForeignKey("RuleId");
+                });
+
+            modelBuilder.Entity("ProjectManager.Models.ProductKnowledge.Rule", b =>
+                {
+                    b.HasOne("ProjectManager.Models.ProductKnowledge.Variable", "RightVariable")
+                        .WithMany()
+                        .HasForeignKey("RightVariableId");
                 });
 
             modelBuilder.Entity("ProjectManager.Models.Project", b =>

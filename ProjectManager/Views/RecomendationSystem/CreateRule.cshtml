@@ -1,0 +1,108 @@
+﻿@using ProjectManager.Models.ProductKnowledge
+@model ProjectManager.Models.ProductKnowledge.CreateRulePage
+@{
+    ViewData["Title"] = "CreateRule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <h2>Defined rules</h2>
+        <ul class="list-group">
+            @*@foreach (var rule in Model.Rules)
+        {
+            string temp = "IF ";
+            foreach (var expression in rule.Expressions)
+            {
+
+                if (rule.Expressions.IndexOf(expression) == 0)
+                {
+                    temp += expression.LeftVariable.Name + " " + expression.Ratio + " " + expression.RightVariable;
+                }
+                else
+                {
+                    temp +=" AND "+expression.LeftVariable.Name + " " + expression.Ratio + " " + expression.RightVariable;
+                }
+            }
+            temp += " THEN " + rule.RightVariable.Name + " = " + rule.Result;
+            <li class="list-group-item">@temp</li>
+        }*@
+            <li class="list-group-item">IF NumericTeamSiz LessOrEqual 7 THEN TeamSize=SmallTeam</li>
+            <li class="list-group-item">IF NumericTeamSize More 7 AND NumericTeamSize LessOrEqual 15 THEN TeamSize=MiddleTeam</li>
+            <li class="list-group-item">IF NumericTeamSize More 15 THEN TeamSize=LargeTeam</li>
+            <li class="list-group-item">IF CustomerAsPartmer Equal True THEN MeetingFrequency=Often</li>
+            <li class="list-group-item">IF CustomerAsPartmer Equal False THEN MeetingFrequency=Selfom</li>
+            <li class="list-group-item">IF MeetingFrequency Equal Selfom THEN RiskOfDisruption=Big</li>
+            <li class="list-group-item">IF RiskOfDisruption Equal Big THEN RiskOfDisruption=Big</li>
+            <li class="list-group-item">IF ClearCutIdea Equal True THEN FrequencyOfChanges=Non</li>
+        </ul>
+        
+
+    </div>
+</div>
+<form asp-controller="RecomendationSystem" asp-action="CreateRule">
+    <table>
+        <tr>
+            <td><h4>IF</h4></td>
+            <td>
+                <table id="expressionTable" class=" table">
+                    <thead>
+                    <tr>
+                        <td>Variable</td>
+                        <td>Sign</td>
+                        <td>Value</td>
+                    </tr>
+
+                    </thead>
+                    <tbody id="template">
+                    <tr>
+                        <td>
+                            @(Html.DevExtreme().SelectBox().Name("variable[0]")
+                                  .DataSource(Model.Variables)
+                                  .DisplayExpr("Name")
+                                  .ValueExpr("Id")
+                                  .SearchEnabled(true)
+                                  )
+                        </td>
+                        <td>
+                            <select name="sign[0]">
+                                <option value="@Ratio.Equal">=</option>
+                                <option value="@Ratio.NonEqual">!=</option>
+                                <option value="@Ratio.More">></option>
+                                <option value="@Ratio.Less"><</option>
+                                <option value="@Ratio.MoreOrEqual">>=</option>
+                                <option value="@Ratio.LessOrEqual"><=</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="value[0]" class="form-control"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="5" style="text-align: left;">
+                            <input type="button" class="btn btn-lg btn-block " id="addExpression" value="Add Row"/>
+                        </td>
+                    </tr>
+                    <tr></tr>
+                    </tfoot>
+                </table>
+            </td>
+            <td> <h4>THEN</h4></td>
+            <td> @(Html.DevExtreme().SelectBox().Name("rigthValiable")
+                       .DataSource(Model.Variables)
+                       .DisplayExpr("Name")
+                       .ValueExpr("Id")
+                       .SearchEnabled(true)
+                       )</td>
+            <td><input type="text" class="form-control col-lg-3" name="rightVarValue"></td>
+        </tr>
+    </table>
+    <div class="row">
+        <div align="right">
+            <input type="submit" class="btn btn-primary" value="Save"/>
+        </div>
+    </div>
+</form>
+

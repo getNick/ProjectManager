@@ -1,0 +1,8 @@
+﻿@model ProjectManager.Models.Sprint
+@{
+    ViewData["Title"] = "_CanNotActivateSprint";
+    Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
+}
+
+<h2>It is impossible to activate the sprint, this team already has an active sprint @Html.ActionLink(Model.Name, "Edit","Sprint",new{ sprintId=Model.Id})</h2>
+

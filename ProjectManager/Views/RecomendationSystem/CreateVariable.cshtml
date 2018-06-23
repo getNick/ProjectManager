@@ -1,0 +1,29 @@
+﻿@using ProjectManager.Models.ProductKnowledge
+@model List<ProjectManager.Models.ProductKnowledge.Variable>
+@{
+    ViewData["Title"] = "CreateVariable";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-lg-6 col-lg-offset-3">
+        <h2>Defined variable</h2>
+        <ul class="list-group">
+            <li class="list-group-item">NumericTeamSize</li>
+            <li class="list-group-item">TeamSize</li>
+            <li class="list-group-item">CustomerAsPartmer</li>
+            <li class="list-group-item">MeetingFrequency</li>
+            <li class="list-group-item">RiskOfDisruption</li>
+            <li class="list-group-item">ClearCutIdea</li>
+            <li class="list-group-item">FrequencyOfChanges</li>
+        </ul>
+        <form asp-controller="RecomendationSystem" asp-action="CreateVariable">
+            <div class="form-group">
+                <label for="usr">Name for the new variable:</label>
+                <input type="text" class="form-control" id="usr" name="name">
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+
+    </div>
+</div>
+

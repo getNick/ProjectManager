@@ -77,16 +77,20 @@ namespace ProjectManager.Areas.Scrum.Controllers
                 vm.SelectedTeam = vm.AllTeams.FirstOrDefault(x => x.Id == selectedTeamId);
                 var allSprints= _db.Sprints.Include(x => x.ListTasks).ThenInclude(x => x.Assignee).ThenInclude(x => x.User)
                     .Where(x => x.Team.Id == vm.SelectedTeam.Id);
-                vm.ActiveSprint = allSprints.FirstOrDefault(x => x.IsActive);
-                vm.NextSprint = allSprints.FirstOrDefault(x => (x.IsActive == false) & (x.IsFinished == false));
+                vm.ActiveSprint = allSprints?.FirstOrDefault(x => x.IsActive);
+                vm.NextSprint = allSprints?.FirstOrDefault(x => (x.IsActive == false) & (x.IsFinished == false));
             }
             else
             {
                 vm.SelectedTeam = vm.AllTeams.FirstOrDefault();
-                var allSprints = _db.Sprints.Include(x => x.ListTasks).ThenInclude(x => x.Assignee).ThenInclude(x => x.User)
-                    .Where(x => x.Team.Id == vm.SelectedTeam.Id);
-                vm.ActiveSprint = allSprints.FirstOrDefault(x => x.IsActive);
-                vm.NextSprint = allSprints.FirstOrDefault(x => (x.IsActive == false) & (x.IsFinished == false));
+                if (vm.SelectedTeam != null)
+                {
+                    var allSprints = _db.Sprints.Include(x => x.ListTasks).ThenInclude(x => x.Assignee).ThenInclude(x => x.User)
+                        .Where(x => x.Team.Id == vm.SelectedTeam.Id).ToList();
+                    vm.ActiveSprint = allSprints?.FirstOrDefault(x => x.IsActive);
+                    vm.NextSprint = allSprints?.FirstOrDefault(x => (x.IsActive == false) & (x.IsFinished == false));
+                }
+               
             }
             //var allTeamInProj = _db.Projects.Include(x => x.Departments).ThenInclude(x => x.Teams)
             //    .FirstOrDefault(x => x.Id == participant.Project.Id).Departments.SelectMany(x=>x.Teams).ToList();

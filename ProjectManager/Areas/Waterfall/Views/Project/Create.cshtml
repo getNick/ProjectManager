@@ -1,0 +1,184 @@
+﻿@using DevExtreme.AspNet.Mvc
+@using ProjectManager.Models.ConstAndEnums
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Areas/Waterfall/Views/Shared/_Layout.cshtml";
+}
+
+<h2>New project</h2>
+<form action="/Waterfall/Project/Save" method="post" enctype="multipart/form-data">
+    <div class="row">
+        <div class="form-group col-lg-6">
+            <label for="usr">Name:</label>
+            <input type="text" name="name" class="form-control" id="usr">
+            <div class="form-group">
+                <label for="usr">Description:</label>
+                <textarea class="form-control" rows="5" id="comment" name="description"></textarea>
+            </div>
+        </div>
+        <div class="col-lg-6 ">
+            <div class="form-group">
+                <label for="file-uploader">Upload avatar:</label>
+                @(Html.DevExtreme().FileUploader()
+                  .ID("file-uploader")
+                  .Name("files")
+                  .Multiple(false)
+                  .Accept("*")
+                  .UploadMode(FileUploadMode.UseForm)
+                  .OnValueChanged("fileUploader_valueChanged")
+                )
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-lg-6">
+            <label for="usr">Budget:</label>
+            <div class="input-group" id="usr">
+                <span class="input-group-addon">$</span>
+                <input type="number" name="budget" class="form-control" min="0">
+            </div>
+            
+        </div>
+        <div class="form-group col-lg-6">
+            <label for="selected-date">Project deadline:</label>
+            @(Html.DevExtreme().DateBox().Name("deadline")
+                  .ID("selected-date")
+                  .Value(DateTime.Now)
+                  .Width("100%")
+                  .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
+            
+            <select name="typeProj" class="form-control">
+                <option value="@ProjectTypeEnum.Scrum" selected>@ProjectTypeEnum.Scrum</option>
+                <option value="@ProjectTypeEnum.Kanban" selected>@ProjectTypeEnum.Kanban</option>
+                <option value="@ProjectTypeEnum.Waterfall" selected>@ProjectTypeEnum.Waterfall</option>
+            </select>
+        </div>
+
+    </div>
+    <div class="row">
+        <div align="right">
+            <input type="submit" class="btn btn-dark btn-lg" value="Save" />
+        </div>
+    </div>
+</form>
+<script>
+    var date = new Date().getTime();
+
+    function getCalendarInstance() {
+        return $("#calendar-container").dxCalendar("instance");
+    }
+
+    function isWeekend(date) {
+        var day = date.getDay();
+
+        return day === 0 || day === 6;
+    }
+
+    function getCellTemplate(data) {
+        var cssClass = "";
+
+        if (isWeekend(data.date))
+            cssClass = "weekend";
+
+        $.each([[1, 0], [4, 6], [25, 11]], function (_, item) {
+            if (data.date.getDate() === item[0] && data.date.getMonth() === item[1]) {
+                cssClass = "holyday";
+                return false;
+            }
+        });
+
+        return "<span class='" + cssClass + "'>" + data.text + "</span>";
+    }
+
+    function calendar_valueChanged(data) {
+        $("#selected-date").dxDateBox("instance").option("value", data.value);
+    }
+
+    function minValue_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("min", new Date(date - 1000 * 60 * 60 * 24 * 3));
+        } else {
+            calendar.option("min", undefined);
+        }
+    }
+
+    function maxValue_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("max", new Date(date + 1000 * 60 * 60 * 24 * 3));
+        } else {
+            calendar.option("max", undefined);
+        }
+    }
+
+    function disabledDates_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("disabledDates", function (data) {
+                return data.view === "month" && isWeekend(data.date);
+            });
+        } else {
+            calendar.option("disabledDates", undefined);
+        }
+    }
+
+    function firstDayOfWeek_changed(data) {
+        var calendar = getCalendarInstance();
+        if (data.value) {
+            calendar.option("firstDayOfWeek", 1);
+        } else {
+            calendar.option("firstDayOfWeek", 0);
+        }
+    }
+
+    function useCustomTemplate(data) {
+        getCalendarInstance().option("cellTemplate", data.value ? getCellTemplate : "cell");
+    }
+
+    function disabledState_changed(data) {
+        getCalendarInstance().option("disabled", data.value);
+    }
+
+    function zoomLevel_changed(data) {
+        getCalendarInstance().option("zoomLevel", data.value);
+    }
+
+    function selectedDate_changed(data) {
+        getCalendarInstance().option("value", data.value);
+    }
+    function getFileUploaderInstance() {
+        return $("#file-uploader").dxFileUploader("instance");
+    }
+
+    function fileUploader_valueChanged(e) {
+        var files = e.value;
+        if (files.length > 0) {
+            $("#selected-files .selected-item").remove();
+
+            $.each(files, function (i, file) {
+                var $selectedItem = $("<div />").addClass("selected-item");
+                $selectedItem.append(
+                    $("<span />").html("Name: " + file.name + "<br/>"),
+                );
+                $selectedItem.appendTo($("#selected-files"));
+            });
+            $("#selected-files").show();
+        }
+        else
+            $("#selected-files").hide();
+    }
+
+    function acceptOption_changed(e) {
+        getFileUploaderInstance().option("accept", e.value);
+    }
+
+    function uploadMode_changed(e) {
+        getFileUploaderInstance().option("uploadMode", e.value);
+    }
+
+    function multipleOption_changed(e) {
+        getFileUploaderInstance().option("multiple", e.value);
+    }
+</script>

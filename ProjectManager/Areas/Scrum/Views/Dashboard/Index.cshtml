@@ -1,9 +1,79 @@
-﻿@using ProjectManager.Models.ConstAndEnums
+﻿@using DevExtreme.AspNet.Mvc
+@using ProjectManager.Models.ConstAndEnums
 @model ProjectManager.Models.DashboardViewModels.PersonalDashboard
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Areas/Scrum/Views/Shared/_Layout.cshtml";
 }
+<div class="row">
+    <div class="dx-fieldset col-lg-6" align="center">
+        <div class="dx-field">
+            <div class="dx-field-label">Select the data source </div>
+            <div class="dx-field-value">
+                @(Html.DevExtreme().DropDownBox()
+                      .Value(Model.SelectorValue)
+                      .ValueExpr("ID")
+                      .DisplayExpr("Text")
+                      .DropDownOptions(o => o.Height(350))
+                      .DataSource(Model.SelectorData)
+                      .Placeholder("Select a value...")
+                      .ShowClearButton(true)
+                      .OnValueChanged("treeBox_valueChanged")
+                      .ContentTemplate(new TemplateName("EmbeddedTreeViewSingle"))
+                      )
+                <div id="treeBox"></div>
+            </div>
+        </div>
+    </div>
+    <p id="selector" hidden>@Model.SelectorValue</p>
+</div>
+@using (Html.DevExtreme().NamedTemplate("EmbeddedTreeViewSingle"))
+{
+    @(Html.DevExtreme().TreeView()
+                                        .DataSource(new JS(@"component.option(""dataSource"")"))
+                                        .KeyExpr("ID")
+                                        .DisplayExpr("Text")
+                                        .ItemsExpr("Items")
+                                        .ExpandedExpr("Expanded")
+                                        .ParentIdExpr("CategoryId")
+                                        .DataStructure(TreeViewDataStructure.Plain)
+                                        .SelectionMode(NavSelectionMode.Single)
+                                        .SelectByClick(true)
+                                        .Height(235)
+                                        .OnItemSelectionChanged(@<text>
+                                        function(args) {
+                                        var value = args.component.getSelectedNodesKeys();
+                                        component.option("value", value);
+                                        }
+                                        </text>)
+                                            .OnContentReady(@<text>
+                                            function(args) {
+                                            syncTreeViewSelection(args.component, component.option("value"));
+                                            }
+                                        </text>)
+    )
+}
+<script>
+    function syncTreeViewSelection(treeView, value) {
+        if (!value) {
+            treeView.unselectAll();
+        } else {
+            treeView.selectItem(value);
+            var s = document.getElementById("selector");
+            if (s.innerHTML != value) {
+                location.href = "Index?selector=" + value;
+            }
+
+        }
+    }
+
+    function treeBox_valueChanged(e) {
+        var $treeView = e.component.content().find(".dx-treeview");
+        if ($treeView.length) {
+            syncTreeViewSelection($treeView.dxTreeView("instance"), e.value);
+        }
+    }
+</script>
 <div class="row">
     <div class="col-lg-3" style="padding-left: 3px; padding-right: 3px;">
         <div class="panel panel-default">

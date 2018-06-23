@@ -41,18 +41,19 @@
             
         </div>
         <div class="form-group col-lg-6">
+            <br />
+            <select name="typeProj" class="form-control">
+                <option value="@ProjectTypeEnum.Scrum" selected>@ProjectTypeEnum.Scrum</option>
+                <option value="@ProjectTypeEnum.Kanban" selected>@ProjectTypeEnum.Kanban</option>
+                <option value="@ProjectTypeEnum.Waterfall" selected>@ProjectTypeEnum.Waterfall</option>
+            </select>
+            <br />
             <label for="selected-date">Project deadline:</label>
             @(Html.DevExtreme().DateBox().Name("deadline")
                   .ID("selected-date")
                   .Value(DateTime.Now)
                   .Width("100%")
                   .OnValueChanged("selectedDate_changed").Min(DateTime.Now))
-            
-            <select name="typeProj" class="form-control">
-                <option value="@ProjectTypeEnum.Scrum" selected>@ProjectTypeEnum.Scrum</option>
-                <option value="@ProjectTypeEnum.Kanban" selected>@ProjectTypeEnum.Kanban</option>
-                <option value="@ProjectTypeEnum.Kanban" selected>WaterFoll</option>
-            </select>
         </div>
 
     </div>
